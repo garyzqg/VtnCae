@@ -4,12 +4,16 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 /**
  * @author : 张庆功
  * date   : 2023/1/6 10:26
  * desc   : 音频流播放操作类
  */
 public class AudioTrackOperator {
+    private static final String TAG = "AudioTrackOperator";
     /**
      * 采样率
      */
@@ -24,6 +28,8 @@ public class AudioTrackOperator {
     private final static int mPcmFormat = AudioFormat.ENCODING_PCM_16BIT;
 
     private AudioTrack mAudioTrack;
+    private boolean mBoolean;
+    private ExecutorService mExecutor;
 
     /**
      * 构建 AudioTrack 实例对象
@@ -54,21 +60,94 @@ public class AudioTrackOperator {
                     mChannelConfig, mPcmFormat, minBufferSize,
                     AudioTrack.MODE_STREAM);
 
-
+            if (mExecutor == null){
+                mExecutor = Executors.newSingleThreadExecutor();
+            }
         }
     }
 
-    public void write(byte[] buffer) {
-        new Thread(new Runnable() {
-            @Override
+    /**
+     * 写入音频流
+     * @param buffer
+     * @param dts
+     */
+    public void write(byte[] buffer,int dts) {
+        Thread t = new Thread(new Runnable() {
             public void run() {
-                int writeResult = mAudioTrack.write(buffer, 0, buffer.length);
+                try{
+                    if (buffer.length> 0 && mAudioTrack != null && mAudioTrack.getPlayState() == AudioTrack.PLAYSTATE_PLAYING && mAudioTrack.getState() == AudioTrack.STATE_INITIALIZED) {
+                        mAudioTrack.write(buffer, 0, buffer.length);
+                    }
+
+                }catch (Exception e){
+
+                }finally {
+                    if (mAudioTrack != null && dts == 2){
+                        mAudioTrack.stop();
+//                        mAudioTrack.release();
+                    }
+                }
+
             }
-        }).start();
+        });
+        if (mExecutor != null){
+            mExecutor.submit(t);
+        }
+
     }
 
 
+    /**
+     * 开始播放
+     */
     public void play() {
-        mAudioTrack.play();
+        if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
+            mAudioTrack.play();
+        }
     }
+
+    /**
+     * 暂停
+     */
+    public void pause() {
+        if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
+            mAudioTrack.pause();
+        }
+    }
+
+    /**
+     * 停止
+     */
+    public void stop() {
+        if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
+            mAudioTrack.stop();
+        }
+    }
+
+    /**
+     * 释放本地AudioTrack资源
+     */
+    public void release() {
+        if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
+            mAudioTrack.release();
+        }
+    }
+
+    /**
+     * flush()只在模式为STREAM下可用。将音频数据刷进等待播放的队列，任何写入的数据如果没有提交的话，都会被舍弃，但是并不能保证所有用于数据的缓冲空间都可用于后续的写入
+     */
+    public void flush() {
+        if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
+            mAudioTrack.flush();
+        }
+    }
+
+    public int getPlayState() {
+        return mAudioTrack.getPlayState();
+    }
+
+    public int getState() {
+        return mAudioTrack.getState();
+    }
+
 }

@@ -27,7 +27,6 @@ import com.iflytek.vtncaetest.util.InitUtil;
 import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.LogUtils;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
-import com.iflytek.vtncaetest.util.RootShell;
 
 import org.json.JSONObject;
 
@@ -107,8 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 saveAudio();
                 break;
             case R.id.writeTest:
-//                writeAudioTest();
-                RootShell.execRootCmdSilent("su");
+                writeAudioTest();
                 break;
             default:
                 break;
@@ -128,11 +126,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initCaeEngine();
         // 初始化alsa录音
         initAlsa();
-
-//        initAudioTrack();
-
-
-
+        //初始化AudioTrack
+        initAudioTrack();
 
     }
 
@@ -140,9 +135,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mAudioTrackOperator == null){
             mAudioTrackOperator = new AudioTrackOperator();
             mAudioTrackOperator.createStreamModeAudioTrack();
-            mAudioTrackOperator.play();
         }
     }
+
 
     /**
      * 读取AIUI配置
