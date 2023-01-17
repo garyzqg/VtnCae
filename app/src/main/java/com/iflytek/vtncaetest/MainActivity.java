@@ -25,8 +25,8 @@ import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
 import com.iflytek.vtncaetest.util.InitUtil;
 import com.iflytek.vtncaetest.util.LogUtil;
-import com.iflytek.vtncaetest.util.LogUtils;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
+import com.iflytek.vtncaetest.websocket.WebsocketOperator;
 
 import org.json.JSONObject;
 
@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // 写音频线程工作中
     private static boolean isWriting = false;
     private AudioTrackOperator mAudioTrackOperator;
+    private WebsocketOperator mWebsocketOperator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,9 +75,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         InitUtil.init(this);
+
+
     }
-
-
 
     private void initLayout() {
         findViewById(R.id.init_sdk).setOnClickListener(this);
@@ -114,11 +115,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-//    static {
-//        System.loadLibrary("tinyalsa");
-//        System.loadLibrary("balsa-jni");
-//    }
-
     private void initSDK() {
         // 初始化AIUI
         createAgent();
@@ -127,8 +123,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 初始化alsa录音
         initAlsa();
         //初始化AudioTrack
-        initAudioTrack();
+//        initAudioTrack();
+        //初始化websocket
+//        initWebsocket();
+    }
 
+    private void initWebsocket() {
+        if (mWebsocketOperator == null){
+            mWebsocketOperator = new WebsocketOperator();
+            mWebsocketOperator.initWebSocket();
+        }
     }
 
     private void initAudioTrack() {
@@ -184,16 +188,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void initCaeEngine() {
         mCaeOperator = new CaeOperator();
-        ret = mCaeOperator.initCAE(onCaeOperatorlistener);
-        if(ret == 0){
-            strTip = "CAE初始化成功";
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ret = mCaeOperator.initCAE(onCaeOperatorlistener);
+                if(ret == 0){
+                    strTip = "CAE初始化成功";
 
-           String ver =  mCaeOperator.getCAEVersion();
-           Log.e(TAG,"vae ver is: "+ver);
+                    String ver =  mCaeOperator.getCAEVersion();
+                    Log.e(TAG,"vae ver is: "+ver);
 //            initAlsa();
-        }else{
-            strTip = "CAE初始化失败,错误信息为："+ ret;
-        }
+                }else{
+                    strTip = "CAE初始化失败,错误信息为："+ ret;
+                }
+            }
+        }).start();
+
         setText(strTip);
         setText("---------init_CAE---------");
     }
@@ -313,21 +323,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onEvent(AIUIEvent event) {
             switch (event.eventType) {
                 case AIUIConstant.EVENT_CONNECTED_TO_SERVER:
-                    LogUtils.i(TAG,"已连接服务器");
+                    LogUtil.iTag(TAG,"AIUI -- 已连接服务器");
                     String uid = event.data.getString("uid");
                     break;
 
                 case AIUIConstant.EVENT_SERVER_DISCONNECTED:
-                    LogUtils.i(TAG,"与服务器断开连接");
+                    LogUtil.iTag(TAG,"AIUI -- 与服务器断开连接");
                     break;
 
                 case AIUIConstant.EVENT_WAKEUP:
-                    LogUtils.i(TAG,"进入识别状态");
+                    LogUtil.iTag(TAG,"AIUI -- WAKEUP 进入识别状态");
                     break;
 
                 case AIUIConstant.EVENT_RESULT:
-                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- INFO -- " + event.info);
-                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- DATA -- " + event.data);
+//                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- INFO -- " + event.info);
+//                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- DATA -- " + event.data);
                     //听写结果(iat)
                     //语义结果(nlp)
                     //后处理服务结果(tpp)
@@ -348,7 +358,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             String sub = params.optString("sub");
                             JSONObject result = cntJson.optJSONObject("intent");
                             if ("nlp".equals(sub) && result.length() > 2) {
-                                LogUtils.i(TAG, "nlp result :" + result.toString());
+//                                LogUtil.iTag(TAG, "nlp result :" + result.toString());
                                 // 解析得到语义结果
                                 String str = "";
                                 //在线语义结果
@@ -407,38 +417,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 case AIUIConstant.EVENT_VAD:
                     if (AIUIConstant.VAD_BOS == event.arg1) {
-                        LogUtils.i("找到vad_bos");
+                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_bos");
                     } else if (AIUIConstant.VAD_BOS_TIMEOUT == event.arg1) {
-                        LogUtils.i("前端点超时");
+                        LogUtil.iTag(TAG,"AIUI -- VAD 前端点超时");
                     } else if (AIUIConstant.VAD_EOS == event.arg1) {
-                        LogUtils.i("找到vad_eos");
+                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_eos");
                     } else {
-                        LogUtils.i(TAG, "event_vad" + event.arg2);
+                        LogUtil.iTag(TAG, "AIUI -- VAD " + event.arg2);
                     }
                     break;
                 case AIUIConstant.EVENT_SLEEP:
-                    LogUtils.i(TAG, "设备进入休眠");
+                    LogUtil.iTag(TAG, "AIUI -- 设备进入休眠");
                     break;
 
                 case AIUIConstant.EVENT_START_RECORD:
-                    LogUtils.i(TAG, "已开始录音");
+                    LogUtil.iTag(TAG, "AIUI -- 已开始录音");
                     break;
 
                 case AIUIConstant.EVENT_STOP_RECORD:
-                    LogUtils.i(TAG, "已停止录音");
+                    LogUtil.iTag(TAG, "AIUI -- 已停止录音");
                     break;
 
                 case AIUIConstant.EVENT_STATE:    // 状态事件
                     mAIUIState = event.arg1;
                     if (AIUIConstant.STATE_IDLE == mAIUIState) {
                         // 闲置状态，AIUI未开启
-                        LogUtils.i(TAG, "event state is STATE_IDLE");
+                        LogUtil.iTag(TAG, "AIUI -- STATE_IDLE");
                     } else if (AIUIConstant.STATE_READY == mAIUIState) {
                         // AIUI已就绪，等待唤醒
-                        LogUtils.i(TAG, "event state is STATE_READY");
+                        LogUtil.iTag(TAG, "AIUI -- STATE_READY");
                     } else if (AIUIConstant.STATE_WORKING == mAIUIState) {
                         // AIUI工作中，可进行交互
-                        LogUtils.i(TAG, "event state is STATE_WORKING");
+                        LogUtil.iTag(TAG, "AIUI -- STATE_WORKING");
                     }
                     break;
 
@@ -479,7 +489,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             final int a = angle;
             final int b = beam;
-            LogUtils.d(TAG,"wakeup success ,angle:" + a + " beam:" + b +"，唤醒次数"+i);
+            LogUtil.iTag(TAG,"CAE -- wakeup success ,angle:" + a + " beam:" + b +"，唤醒次数"+i);
             i++;
             setText("唤醒成功,angle:" + a + " beam:" + b );
             setText("---------WAKEUP_CAE---------");
@@ -497,7 +507,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RecordListener onRecordListener = new RecordListener() {
         @Override
         public void onPcmData(byte[] bytes) {
-
+//            LogUtil.iTag(TAG,"ALSA录音消息回调");
             // 保存原始录音数据
             mCaeOperator.saveAduio(bytes,CaeOperator.mAlsaRawFileUtil);
 

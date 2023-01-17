@@ -4,10 +4,9 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Message;
-import android.util.Log;
 
 import com.iflytek.alsa.AlsaRecorder;
-import com.iflytek.vtncaetest.util.LogUtils;
+import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.RootShell;
 
 import java.io.File;
@@ -26,7 +25,8 @@ public class RecOperator {
      *
      * tinycap /sdcard/test.pcm -D 2 -d 0 -c 4 -r 16000 -b 16
      *
-     * tinycap /sdcard/test.pcm -D 1 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4
+     * tinycap /sdcard/test.pcm -D 0 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4   信步
+     * tinycap /sdcard/test.pcm -D 1 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4   通豪
      * -D card          声卡
      * -d device        设备
      * -c channels      通道
@@ -39,7 +39,8 @@ public class RecOperator {
     /**
      * pcm 声卡号
      */
-    private final static int mPcmCard = 1;
+//    private final static int mPcmCard = 0;//信步
+    private final static int mPcmCard = 1;//通豪
     /**
      * pcm 声卡设备号
      */
@@ -89,17 +90,17 @@ public class RecOperator {
                         if (mAlsaRecorder != null){
                             int recRet = mAlsaRecorder.startRecording(mAlsaPcmListener);
                             if (0 == recRet) {
-                                LogUtils.i(TAG, "start recording sucess...");
+                                LogUtil.iTag(TAG, "ALSA -- start recording sucess...");
                             }else {
-                                LogUtils.i(TAG, "start recording fail...");
+                                LogUtil.iTag(TAG, "ALSA -- start recording fail...");
                             }
                         }else {
-                            LogUtils.i(TAG, "mAlsaRecorder is null...");
+                            LogUtil.iTag(TAG, "ALSA -- mAlsaRecorder is null...");
                         }
                         break;
                     case CMD_STOP:
                         mAlsaRecorder.stopRecording();
-                        LogUtils.i(TAG, "stopRecd ok...");
+                        LogUtil.iTag(TAG, "ALSA -- stopRecd ok...");
                         break;
                 }
             }
@@ -136,7 +137,6 @@ public class RecOperator {
         RandomAccessFile file;
         @Override
         public void onPcmData(byte[] bytes, int length) {
-            Log.i(TAG, "onPcmData: 1111111111111111111111111111111111111111");
             if (file == null) {
                 File tmp = new File("/sdcard/test.pcm");
                 if (tmp.exists()) {

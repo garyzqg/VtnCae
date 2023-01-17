@@ -6,6 +6,7 @@ import android.content.Context;
 import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.iflyos.cae.ICAEListener;
 import com.iflytek.vtncaetest.util.FileUtil;
+import com.iflytek.vtncaetest.util.LogUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,7 +20,7 @@ import java.io.OutputStream;
 
 public class CaeOperator {
 
-    private static final String TAG = CaeOperator.class.getSimpleName();
+    private static final String TAG = "CaeOperator";
 
     // 设备鉴权唯一标识
 //    private static String AUTH_SN = "614184de-f61d-4a05-93b3-85d052fc4b10";
@@ -60,6 +61,7 @@ public class CaeOperator {
 
         @Override
         public void onWakeup(String result) {
+            LogUtil.iTag(TAG, "CAE onWakeup: " + result);
             try {
                 JSONObject wakeupResult = new JSONObject(result).optJSONObject("ivw");
                 // 默认的 beam 取值不代表正式的波束，讯飞算法侧内部做了映射关系beam仅输出 0、1、2
