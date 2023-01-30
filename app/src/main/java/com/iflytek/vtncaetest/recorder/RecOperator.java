@@ -27,6 +27,7 @@ public class RecOperator {
      *
      * tinycap /sdcard/test.pcm -D 0 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4   信步
      * tinycap /sdcard/test.pcm -D 1 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4   通豪
+     * tinycap /sdcard/test.pcm -D 3 -d 0 -c 8 -r 16000 -b 16 -p 1024 -n 4   卡奥斯
      * -D card          声卡
      * -d device        设备
      * -c channels      通道
@@ -39,8 +40,9 @@ public class RecOperator {
     /**
      * pcm 声卡号
      */
-//    private final static int mPcmCard = 0;//信步
-    private final static int mPcmCard = 1;//通豪
+//    private final static int mPcmCard = 2;//信步
+//    private final static int mPcmCard = 1;//通豪
+    private final static int mPcmCard = 3;//卡奥斯
     /**
      * pcm 声卡设备号
      */

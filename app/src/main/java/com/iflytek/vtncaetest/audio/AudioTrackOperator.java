@@ -69,9 +69,9 @@ public class AudioTrackOperator {
     /**
      * 写入音频流
      * @param buffer
-     * @param dts
+     * @param isFinish
      */
-    public void write(byte[] buffer,int dts) {
+    public void write(byte[] buffer,boolean isFinish) {
         Thread t = new Thread(new Runnable() {
             public void run() {
                 try{
@@ -82,7 +82,7 @@ public class AudioTrackOperator {
                 }catch (Exception e){
 
                 }finally {
-                    if (mAudioTrack != null && dts == 2){
+                    if (mAudioTrack != null && isFinish){
                         mAudioTrack.stop();
 //                        mAudioTrack.release();
                     }

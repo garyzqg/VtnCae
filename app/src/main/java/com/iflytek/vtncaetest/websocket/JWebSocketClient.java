@@ -1,22 +1,12 @@
 package com.iflytek.vtncaetest.websocket;
 
-import android.text.TextUtils;
-
-import com.iflytek.vtncaetest.bean.NlpBean;
-import com.iflytek.vtncaetest.bean.TtsBean;
-import com.iflytek.vtncaetest.util.Base64Utils;
-import com.iflytek.vtncaetest.util.GsonHelper;
 import com.iflytek.vtncaetest.util.LogUtil;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
 
 /**
  * @author : zhangqinggong
@@ -55,31 +45,6 @@ public class JWebSocketClient extends WebSocketClient {
    @Override
    public void onMessage(ByteBuffer bytes) {
       super.onMessage(bytes);
-      //{"data":{"question":"你好","answer":"你也好","entities":[],"finish":true,"intent":"qa_general_intent"},"type":"nlp"}
-      //{"type": "tts","data": {"is_finish": true,"audio": ""}}
-      Charset charset = Charset.forName("utf-8");
-      CharBuffer decode = charset.decode(bytes);
-      try {
-         JSONObject jsonObject = new JSONObject(decode.toString());
-         String type = jsonObject.optString("type");
-         LogUtil.iTag(TAG,"onMessage: type: " + type);
-         String data = jsonObject.optString("data");
-         if (TextUtils.equals("nlp",type)){
-            NlpBean nlpBean = GsonHelper.GSON.fromJson(data, NlpBean.class);
-            String question = nlpBean.getQuestion();
-         }else if (TextUtils.equals("tts",type)){
-            TtsBean ttsBean = GsonHelper.GSON.fromJson(data, TtsBean.class);
-            boolean is_finish = ttsBean.isIs_finish();
-            String audio = ttsBean.getAudio();
-
-            byte[] audioByte = Base64Utils.base64EncodeToByte(audio);
-
-
-         }
-
-      } catch (JSONException e) {
-         e.printStackTrace();
-      }
    }
 
 }

@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +29,7 @@ import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
 import com.iflytek.vtncaetest.websocket.WebsocketOperator;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static boolean isWriting = false;
     private AudioTrackOperator mAudioTrackOperator;
     private WebsocketOperator mWebsocketOperator;
+    private String mIatMessage;//iat有效数据
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,15 +127,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 初始化alsa录音
         initAlsa();
         //初始化AudioTrack
-//        initAudioTrack();
+        initAudioTrack();
         //初始化websocket
-//        initWebsocket();
+        initWebsocket();
     }
 
     private void initWebsocket() {
         if (mWebsocketOperator == null){
             mWebsocketOperator = new WebsocketOperator();
-            mWebsocketOperator.initWebSocket();
+            mWebsocketOperator.initWebSocket(new WebsocketOperator.IWebsocketListener() {
+                @Override
+                public void OnTtsData(byte[] audioData, boolean isFinish) {
+
+                    mAudioTrackOperator.play();
+                    mAudioTrackOperator.write(audioData,isFinish);
+                }
+
+            });
         }
     }
 
@@ -139,6 +151,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mAudioTrackOperator == null){
             mAudioTrackOperator = new AudioTrackOperator();
             mAudioTrackOperator.createStreamModeAudioTrack();
+//            mAudioTrackOperator.play();
         }
     }
 
@@ -313,8 +326,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }).start();
     }
 
-
-
     /**
      * AIUI 回调信息处理
      */
@@ -343,68 +354,60 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //后处理服务结果(tpp)
                     //云端tts结果(tts)
                     //翻译结果(itrans)
+
+                    /**
+                     * event.info
+                     * {
+                     *     "data": [{
+                     *         "params": {
+                     *             "sub": "iat",
+                     *         },
+                     *         "content": [{
+                     *             "dte": "utf8",
+                     *             "dtf": "json",
+                     *             "cnt_id": "0"
+                     *         }]
+                     *     }]
+                     * }
+                     */
                     try {
-                        JSONObject bizParamJson = new JSONObject(event.info);
-                        JSONObject data = bizParamJson.getJSONArray("data").getJSONObject(0);
-                        JSONObject params = data.getJSONObject("params");
-                        JSONObject content = data.getJSONArray("content").getJSONObject(0);
+                        JSONObject info = new JSONObject(event.info);
+                        JSONObject infoData = info.optJSONArray("data").optJSONObject(0);
+                        String sub = infoData.optJSONObject("params").optString("sub");
+                        JSONObject content = infoData.optJSONArray("content").optJSONObject(0);
 
                         if (content.has("cnt_id")) {
-                            String cnt_id = content.getString("cnt_id");
-                            JSONObject cntJson = new JSONObject(new String(event.data.getByteArray(cnt_id), "utf-8"));
-
-                            String sid = event.data.getString("sid");
-
-                            String sub = params.optString("sub");
-                            JSONObject result = cntJson.optJSONObject("intent");
-                            if ("nlp".equals(sub) && result.length() > 2) {
-//                                LogUtil.iTag(TAG, "nlp result :" + result.toString());
-                                // 解析得到语义结果
-                                String str = "";
-                                //在线语义结果
-                                String iatRes = result.optString("text");
-                                if (result.optInt("rc") == 0) {
-                                    str = "语义rc=0，识别内容：" + iatRes;
-                                } else {
-                                    str = "语义rc≠0，识别内容：" + iatRes;
+                            String cnt_id = content.optString("cnt_id");
+                            String resultString = new String(event.data.getByteArray(cnt_id), "utf-8");
+                            if ("iat".equals(sub) && resultString.length() > 2) {
+                                JSONObject result = new JSONObject(resultString);
+                                JSONObject text = result.optJSONObject("text");
+                                boolean ls = text.optBoolean("ls");//是否结束
+                                JSONArray ws = text.optJSONArray("ws");
+                                StringBuilder currentIatMessage = new StringBuilder();
+                                for (int j = 0; j < ws.length(); j++) {
+                                    JSONArray cw = ws.optJSONObject(j).optJSONArray("cw");
+                                    String w = cw.optJSONObject(0).optString("w");
+                                    if (!TextUtils.isEmpty(w)){
+                                        currentIatMessage.append(w);
+                                    }
                                 }
-                                setText(str);
-                                setText("---------nlp_reslut---------");
+
+                                LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- current -- " + currentIatMessage);
+
+                                if (currentIatMessage!= null && currentIatMessage.length()>0){
+                                    mIatMessage = currentIatMessage.toString();
+                                }
+
+                                if (ls){
+                                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
+                                    mWebsocketOperator.sendMessage(mIatMessage);
+                                }
 
                             }
                         }
 
 
-//                        String sub = params.optString("sub");
-//                        if ("tts".equals(sub)) {
-//                            if (content.has("cnt_id")) {
-//                                String sid = event.data.getString("sid");
-//                                String cnt_id = content.getString("cnt_id");
-//                                byte[] audio = event.data.getByteArray(cnt_id); //合成音频数据
-//
-//                                mAudioTrackOperator.write(audio);
-//                                /**
-//                                 *
-//                                 * 音频块位置状态信息，取值：
-//                                 * - 0（合成音频开始块）
-//                                 * - 1（合成音频中间块，可出现多次）
-//                                 * - 2（合成音频结束块)
-//                                 * - 3（合成音频独立块,在短合成文本时出现）
-//                                 *
-//                                 * 举例说明：
-//                                 * 一个正常语音合成可能对应的块顺序如下：
-//                                 *   0 1 1 1 ... 2
-//                                 * 一个短的语音合成可能对应的块顺序如下:
-//                                 *   3
-//                                 **/
-//                                int dts = content.getInt("dts");
-//                                int frameId = content.getInt("frame_id");// 音频段id，取值：1,2,3,...
-//
-//                                int percent = event.data.getInt("percent"); //合成进度
-//
-//                                boolean isCancel = "1".equals(content.getString("cancel"));  //合成过程中是否被取消
-//                            }
-//                        }
                     } catch (Throwable e) {
                         e.printStackTrace();
                     }
@@ -416,15 +419,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
 
                 case AIUIConstant.EVENT_VAD:
-                    if (AIUIConstant.VAD_BOS == event.arg1) {
-                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_bos");
-                    } else if (AIUIConstant.VAD_BOS_TIMEOUT == event.arg1) {
-                        LogUtil.iTag(TAG,"AIUI -- VAD 前端点超时");
-                    } else if (AIUIConstant.VAD_EOS == event.arg1) {
-                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_eos");
-                    } else {
-                        LogUtil.iTag(TAG, "AIUI -- VAD " + event.arg2);
-                    }
+//                    if (AIUIConstant.VAD_BOS == event.arg1) {
+//                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_bos");
+//                    } else if (AIUIConstant.VAD_BOS_TIMEOUT == event.arg1) {
+//                        LogUtil.iTag(TAG,"AIUI -- VAD 前端点超时");
+//                    } else if (AIUIConstant.VAD_EOS == event.arg1) {
+//                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_eos");
+//                    } else {
+//                        LogUtil.iTag(TAG, "AIUI -- VAD " + event.arg2);
+//                    }
                     break;
                 case AIUIConstant.EVENT_SLEEP:
                     LogUtil.iTag(TAG, "AIUI -- 设备进入休眠");
@@ -496,6 +499,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // CAE SDK触发唤醒后给AIUI SDK发送手动唤醒事件：让AIUI SDK置于工作状态
             AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
             mAIUIAgent.sendMessage(resetWakeupMsg);
+
+            //websocket建联 若已连接状态需要先断开
+            mWebsocketOperator.connectWebSocket();
 
         }
     };
