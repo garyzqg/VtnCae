@@ -2,6 +2,7 @@ package com.iflytek.vtncaetest;
 
 import android.Manifest;
 import android.content.res.AssetManager;
+import android.media.AudioTrack;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -89,6 +90,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.btnStop).setOnClickListener(this);
         findViewById(R.id.btnSave).setOnClickListener(this);
         findViewById(R.id.writeTest).setOnClickListener(this);
+        findViewById(R.id.audioplay).setOnClickListener(this);
+        findViewById(R.id.status).setOnClickListener(this);
         mScrollView = findViewById(R.id.scrollView);
         mResText = findViewById(R.id.res_text);
         btnSave = findViewById(R.id.btnSave);
@@ -113,10 +116,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.writeTest:
                 writeAudioTest();
                 break;
+            case R.id.audioplay:
+                audioPlayTest();
+                break;
+            case R.id.status:
+                Log.i(TAG, "state: "+mAudioTrackOperator.getState() +" playState" +mAudioTrackOperator.getPlayState());
+                break;
             default:
                 break;
         }
 
+    }
+
+    private void audioPlayTest() {
+        mAudioTrackOperator.play();
+        mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
     }
 
     private void initSDK() {
@@ -138,9 +152,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mWebsocketOperator.initWebSocket(new WebsocketOperator.IWebsocketListener() {
                 @Override
                 public void OnTtsData(byte[] audioData, boolean isFinish) {
-
+                    // TODO: 2023/1/30 每次都调用play?
                     mAudioTrackOperator.play();
                     mAudioTrackOperator.write(audioData,isFinish);
+                }
+
+                @Override
+                public void onOpen() {
+                    mAudioTrackOperator.play();
+                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
+                }
+
+                @Override
+                public void onError() {
+                    mAudioTrackOperator.play();
+                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_disconnect.pcm");
                 }
 
             });
@@ -470,7 +496,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onAudio(byte[] audioData, int dataLen) {
             // CAE降噪后音频写入AIUI SDK进行语音交互
-            if(mAIUIState == AIUIConstant.STATE_WORKING){
+            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
                 String params = "data_type=audio,sample_rate=16000";
                 AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, audioData);
                 mAIUIAgent.sendMessage(msg);
@@ -502,6 +528,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //websocket建联 若已连接状态需要先断开
             mWebsocketOperator.connectWebSocket();
+
+            //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
+            mAudioTrackOperator.shutdownExecutor();
+            mAudioTrackOperator.stop();
+            mAudioTrackOperator.flush();
+
+//            mAudioTrackOperator.play();
+//            mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
 
         }
     };

@@ -9,9 +9,6 @@ import com.iflytek.alsa.AlsaRecorder;
 import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.RootShell;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.RandomAccessFile;
 
 
@@ -139,28 +136,28 @@ public class RecOperator {
         RandomAccessFile file;
         @Override
         public void onPcmData(byte[] bytes, int length) {
-            if (file == null) {
-                File tmp = new File("/sdcard/test.pcm");
-                if (tmp.exists()) {
-                    tmp.delete();
-                }
-                try {
-                    file = new RandomAccessFile(tmp, "rw");
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-            try {
-                file.write(bytes, 0, bytes.length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//            if (file == null) {
+//                File tmp = new File("/sdcard/test.pcm");
+//                if (tmp.exists()) {
+//                    tmp.delete();
+//                }
+//                try {
+//                    file = new RandomAccessFile(tmp, "rw");
+//                } catch (FileNotFoundException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            try {
+//                file.write(bytes, 0, bytes.length);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
             mPcmListener.onPcmData(bytes);
         }
 
         @Override
         public void onError(int errorCode, String errorStr) {
-
+            LogUtil.iTag(TAG, "onError: code: " + errorCode + " msg: " + errorStr);
         }
 
 

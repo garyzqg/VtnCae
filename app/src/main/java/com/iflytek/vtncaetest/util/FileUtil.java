@@ -59,7 +59,6 @@ public class FileUtil {
                 mFis.close();
                 mFis = null;
             } catch (IOException e) {
-                // TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -95,7 +94,6 @@ public class FileUtil {
                 try {
                     mFos.write(data);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -108,7 +106,6 @@ public class FileUtil {
                 try {
                     mFos.write(data, offset, len);
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
             }
@@ -121,7 +118,6 @@ public class FileUtil {
                 try {
                     mFos.close();
                 } catch (IOException e) {
-                    // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
                 mFos = null;

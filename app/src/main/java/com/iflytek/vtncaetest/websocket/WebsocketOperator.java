@@ -40,11 +40,14 @@ public class WebsocketOperator {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
                LogUtil.iTag(TAG, "onOpen");
+               if (iWebsocketListener != null){
+                  iWebsocketListener.onOpen();
+               }
             }
 
             @Override
             public void onMessage(String message) {
-               LogUtil.iTag(TAG, "onMessage:" + message);
+//               LogUtil.iTag(TAG, "onMessage:" + message);
             }
 
             @Override
@@ -56,12 +59,14 @@ public class WebsocketOperator {
             @Override
             public void onError(Exception ex) {
                LogUtil.iTag(TAG, "onError:" + ex.toString());
-               // TODO: 2023/1/13 播放离线语音 网络似乎开小差了呢，请稍微找我聊天吧
+               if (iWebsocketListener != null){
+                  iWebsocketListener.onError();
+               }
+
             }
 
             @Override
             public void onMessage(ByteBuffer bytes) {
-               LogUtil.iTag(TAG, "onMessage byte");
 //               super.onMessage(bytes);
                //{"data":{"question":"你好","answer":"你也好","entities":[],"finish":true,"intent":"qa_general_intent"},"type":"nlp"}
                //{"type": "tts","data": {"is_finish": true,"audio": ""}}
@@ -81,13 +86,14 @@ public class WebsocketOperator {
                      NlpBean nlpBean = GsonHelper.GSON.fromJson(data, NlpBean.class);
                      String question = nlpBean.getQuestion();
                   } else if (TextUtils.equals("tts", type)) {
-                     LogUtil.iTag(TAG, "onMessage:" + "tts");
                      TtsBean ttsBean = GsonHelper.GSON.fromJson(data, TtsBean.class);
                      boolean is_finish = ttsBean.isIs_finish();
                      String audio = ttsBean.getAudio();
 
                      byte[] audioByte = Base64Utils.base64EncodeToByte(audio);
-                     iWebsocketListener.OnTtsData(audioByte,is_finish);
+                     if (iWebsocketListener != null){
+                        iWebsocketListener.OnTtsData(audioByte,is_finish);
+                     }
 
                   }
 
@@ -105,6 +111,12 @@ public class WebsocketOperator {
     * websocket连接
     */
    public void connectWebSocket() {
+      //需要先断开已有连接
+
+      if (mClient != null && mClient.isOpen()){
+         mClient.close();
+      }
+
       new Thread(new Runnable() {
          @Override
          public void run() {
@@ -146,5 +158,7 @@ public class WebsocketOperator {
 
    public interface IWebsocketListener{
       void OnTtsData(byte[] audioData,boolean isFinish);
+      void onOpen();
+      void onError();
    }
 }
