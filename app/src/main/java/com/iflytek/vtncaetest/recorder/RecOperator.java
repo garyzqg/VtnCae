@@ -7,7 +7,7 @@ import android.os.Message;
 
 import com.iflytek.alsa.AlsaRecorder;
 import com.iflytek.vtncaetest.util.LogUtil;
-import com.iflytek.vtncaetest.util.RootShell;
+import com.iflytek.vtncaetest.util.USBCardFinder;
 
 import java.io.RandomAccessFile;
 
@@ -39,7 +39,7 @@ public class RecOperator {
      */
 //    private final static int mPcmCard = 2;//信步
 //    private final static int mPcmCard = 1;//通豪
-    private final static int mPcmCard = 3;//卡奥斯
+    private static int mPcmCard = 0;//卡奥斯
     /**
      * pcm 声卡设备号
      */
@@ -105,8 +105,19 @@ public class RecOperator {
             }
         };
 
-        RootShell.execRootCmdSilent("setenforce 0");
-        RootShell.execRootCmdSilent("chmod 777 /dev/snd/pcmC"+mPcmCard+"D"+mPcmDevice+"c");
+        mPcmCard = USBCardFinder.fetchCards(-1, new USBCardFinder.SoundCardNameCheck() {
+            @Override
+            public boolean checkPrimaryName(String name) {
+                return name.contains("AIUI-USB-MC");
+            }
+
+            @Override
+            public boolean checkSecondaryName(String name) {
+                return name.contains("Bothlent UAC Dongle");
+            }
+        });
+//        RootShell.execRootCmdSilent("setenforce 0");
+//        RootShell.execRootCmdSilent("chmod 777 /dev/snd/pcmC"+mPcmCard+"D"+mPcmDevice+"c");
         mPcmListener = mRecordListener;
         mAlsaRecorder = AlsaRecorder.createInstance(mPcmCard, mPcmDevice, mPcmChannel, mPcmSampleRate,
                 mPcmPeriodSize, mPcmPeriodCount, mPcmFormat);
