@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ScrollView;
@@ -20,6 +19,7 @@ import com.iflytek.aiui.AIUIEvent;
 import com.iflytek.aiui.AIUIListener;
 import com.iflytek.aiui.AIUIMessage;
 import com.iflytek.aiui.AIUISetting;
+import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.vtncaetest.audio.AudioTrackOperator;
 import com.iflytek.vtncaetest.cae.CaeOperator;
 import com.iflytek.vtncaetest.cae.OnCaeOperatorlistener;
@@ -118,9 +118,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.audioplay:
                 audioPlayTest();
+//                CAE.CAESetRealBeam(3);
                 break;
             case R.id.status:
-                Log.i(TAG, "state: "+mAudioTrackOperator.getState() +" playState" +mAudioTrackOperator.getPlayState());
+                LogUtil.iTag(TAG, "state: "+mAudioTrackOperator.getState() +" playState" +mAudioTrackOperator.getPlayState());
                 break;
             default:
                 break;
@@ -160,7 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onOpen() {
                     mAudioTrackOperator.play();
-                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
+                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_wakeUpReply.pcm");
                 }
 
                 @Override
@@ -205,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void createAgent() {
         if (null == mAIUIAgent) {
-            Log.i(TAG, "create aiui agent");
+            LogUtil.iTag(TAG, "create aiui agent");
 
             AIUISetting.setSystemInfo(AIUIConstant.KEY_SERIAL_NUM, CaeOperator.AUTH_SN);
 
@@ -235,7 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     strTip = "CAE初始化成功";
 
                     String ver =  mCaeOperator.getCAEVersion();
-                    Log.e(TAG,"vae ver is: "+ver);
+                    LogUtil.iTag(TAG,"vae ver is: "+ver);
 //            initAlsa();
                 }else{
                     strTip = "CAE初始化失败,错误信息为："+ ret;
@@ -324,7 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     byte[] audio = new byte[512*2*8];
                     int byteread = 0;
-                    Log.e(TAG,"开始测试音频读写");
+//                    Log.e(TAG,"开始测试音频读写");
                     // 流式读取文件写入aiui
                     while ((byteread = in.read(audio)) != -1) {
                         if(!isWriting){
@@ -340,7 +341,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Thread.sleep(40);
                     }
                     in.close();
-                    Log.e(TAG,"测试音频读写完成");
+//                    Log.e(TAG,"测试音频读写完成");
                     setText("-------测试音频读写完成-------");
 
                     isWriting = false;
@@ -534,6 +535,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mAudioTrackOperator.stop();
             mAudioTrackOperator.flush();
 
+            // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
+            CAE.CAESetRealBeam(5);
+
+
 //            mAudioTrackOperator.play();
 //            mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
 
@@ -577,7 +582,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mRecOperator.stopRecord();
             mCaeOperator.stopSaveAudio();
         }else{
-            Log.d(TAG, "distoryCaeEngine is Done!");
+            LogUtil.dTag(TAG, "distoryCaeEngine is Done!");
         }
     }
 
