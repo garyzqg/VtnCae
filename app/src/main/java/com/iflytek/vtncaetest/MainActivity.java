@@ -441,6 +441,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
 
                 case AIUIConstant.EVENT_ERROR:
+                    // TODO: 2023/2/3 错误码11217 偶现 需要重新初始化
                     setText("错误: " + event.arg1 + "\n" + event.info);
                     setText("---------error_aiui---------");
                     break;
