@@ -1,6 +1,7 @@
 package com.iflytek.vtncaetest.websocket;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.bean.TtsBean;
@@ -73,6 +74,8 @@ public class WebsocketOperator {
                Charset charset = Charset.forName("utf-8");
                CharBuffer decode = charset.decode(bytes);
                String message = decode.toString();
+
+               Log.i(TAG, "websocket onMessage: " + message);
                if (TextUtils.isEmpty(message)){
                   return;
                }
@@ -85,6 +88,10 @@ public class WebsocketOperator {
                   if (TextUtils.equals("nlp", type)) {
                      NlpBean nlpBean = GsonHelper.GSON.fromJson(data, NlpBean.class);
                      String question = nlpBean.getQuestion();
+                     String answer = nlpBean.getAnswer();
+                     if (iWebsocketListener != null){
+                        iWebsocketListener.OnNlpData(answer);
+                     }
                   } else if (TextUtils.equals("tts", type)) {
                      TtsBean ttsBean = GsonHelper.GSON.fromJson(data, TtsBean.class);
                      boolean is_finish = ttsBean.isIs_finish();
@@ -158,6 +165,7 @@ public class WebsocketOperator {
 
    public interface IWebsocketListener{
       void OnTtsData(byte[] audioData,boolean isFinish);
+      void OnNlpData(String nlpString);
       void onOpen();
       void onError();
    }

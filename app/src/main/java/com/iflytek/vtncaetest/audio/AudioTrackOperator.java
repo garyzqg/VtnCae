@@ -32,7 +32,7 @@ public class AudioTrackOperator {
     private AudioTrack mAudioTrack;
     private boolean mBoolean;
     private ExecutorService mExecutor;
-    private boolean isPlaying = false;
+    public boolean isPlaying = false;
     private int threadCount = 0;
 
 
@@ -91,6 +91,7 @@ public class AudioTrackOperator {
                 }finally {
                     if (mAudioTrack != null && isFinish){
                         mAudioTrack.stop();
+                        isPlaying = false;
 //                        mAudioTrack.release();
                     }
                 }
@@ -118,7 +119,7 @@ public class AudioTrackOperator {
      * @param fileName
      */
     public void writeSource(Context context, String fileName) {
-        if (isPlaying) return;
+//        if (isPlaying) return;
         Thread t = new Thread(new Runnable() {
             public void run() {
                 //获取文件输入流 我这里存放在assets中
@@ -136,7 +137,7 @@ public class AudioTrackOperator {
                 }catch (Exception e){
                     e.printStackTrace();
                 }finally {
-                    isPlaying = false;
+//                    isPlaying = false;
                     if (mAudioTrack != null){
                         mAudioTrack.stop();
 //                        mAudioTrack.release();
@@ -146,7 +147,7 @@ public class AudioTrackOperator {
             }
         });
         t.start();
-        isPlaying = true;
+//        isPlaying = true;
 
     }
 

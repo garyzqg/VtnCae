@@ -8,24 +8,6 @@
     android:focusableInTouchMode="true"
     android:padding="10dip" >
 
-    <FrameLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dip"
-        android:layout_marginBottom="2dip"
-        android:layout_gravity="center_horizontal"
-        android:orientation="horizontal" >
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="10dip"
-            android:layout_gravity="center"
-            android:text="CAE+AIUI"
-            android:textSize="30sp" />
-
-    </FrameLayout>
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,22 +15,37 @@
         android:layout_weight="1"
         android:orientation="horizontal" >
 
-        <ScrollView
-            android:id="@+id/scrollView"
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:fadeScrollbars="false"
-            android:scrollbars="vertical">
-            <TextView
-                android:id="@+id/res_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="top|left"
-                android:paddingBottom="40dip"
-                android:textSize="20sp" />
-        </ScrollView>
+            android:orientation="vertical">
+
+            <ScrollView
+                android:id="@+id/scrollView"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:fadeScrollbars="false"
+                android:scrollbars="vertical">
+
+                <TextView
+                    android:id="@+id/res_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="top|left"
+                    android:paddingBottom="40dip"
+                    android:textSize="20sp" />
+            </ScrollView>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview_chat"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+        </LinearLayout>
+
+
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -76,10 +73,24 @@
                 android:text="停止录音"
                 android:textSize="15sp"/>
             <Button
+                android:id="@+id/btnWakeup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="手动唤醒"
+                android:visibility="visible"
+                android:textSize="15sp"/>
+            <Button
                 android:id="@+id/btnSave"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="保存音频"
+                android:visibility="visible"
+                android:textSize="15sp"/>
+            <Button
+                android:id="@+id/btnClear"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="清空"
                 android:visibility="visible"
                 android:textSize="15sp"/>
 
@@ -105,14 +116,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="播放测试"
-                android:textSize="15sp"/>
+                android:textSize="15sp"
+                android:visibility="gone"/>
 
             <Button
                 android:id="@+id/status"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="audio当前状态"
-                android:textSize="15sp"/>
+                android:textSize="15sp"
+                android:visibility="gone"/>
 
         </LinearLayout>
 

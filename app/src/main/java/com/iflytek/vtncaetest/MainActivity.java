@@ -23,6 +23,8 @@ import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.vtncaetest.audio.AudioTrackOperator;
 import com.iflytek.vtncaetest.cae.CaeOperator;
 import com.iflytek.vtncaetest.cae.OnCaeOperatorlistener;
+import com.iflytek.vtncaetest.chatlayout.Msg;
+import com.iflytek.vtncaetest.chatlayout.MsgAdapter;
 import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
 import com.iflytek.vtncaetest.util.InitUtil;
@@ -35,9 +37,13 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static String TAG = MainActivity.class.getSimpleName();
@@ -67,6 +73,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AudioTrackOperator mAudioTrackOperator;
     private WebsocketOperator mWebsocketOperator;
     private String mIatMessage;//iat有效数据
+    private RecyclerView mRvChat;
+    private List<Msg> msgList = new ArrayList<>();
+    private MsgAdapter mAdapter;
 
 
     @Override
@@ -92,10 +101,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.writeTest).setOnClickListener(this);
         findViewById(R.id.audioplay).setOnClickListener(this);
         findViewById(R.id.status).setOnClickListener(this);
+        findViewById(R.id.btnWakeup).setOnClickListener(this);
+        findViewById(R.id.btnClear).setOnClickListener(this);
+        mRvChat = findViewById(R.id.recyclerview_chat);
         mScrollView = findViewById(R.id.scrollView);
         mResText = findViewById(R.id.res_text);
         btnSave = findViewById(R.id.btnSave);
 
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        mAdapter = new MsgAdapter(msgList = getData());
+
+        mRvChat.setLayoutManager(layoutManager);
+        mRvChat.setAdapter(mAdapter);
+
+
+    }
+
+    private List<Msg> getData(){
+        List<Msg> list = new ArrayList<>();
+//        list.add(new Msg("Hello",Msg.TYPE_RECEIVED));
+        return list;
     }
 
     @Override
@@ -122,6 +147,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.status:
                 LogUtil.iTag(TAG, "state: "+mAudioTrackOperator.getState() +" playState" +mAudioTrackOperator.getPlayState());
+                break;
+
+            case R.id.btnWakeup:
+                setText("手动唤醒成功");
+                // CAE SDK触发唤醒后给AIUI SDK发送手动唤醒事件：让AIUI SDK置于工作状态
+                AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
+                mAIUIAgent.sendMessage(resetWakeupMsg);
+
+                //websocket建联 若已连接状态需要先断开
+                mWebsocketOperator.connectWebSocket();
+
+                //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
+                mAudioTrackOperator.shutdownExecutor();
+                mAudioTrackOperator.stop();
+                mAudioTrackOperator.flush();
+
+                mAudioTrackOperator.isPlaying = false;
+                break;
+            case R.id.btnClear:
+                if (msgList != null && msgList.size()>0){
+                    msgList.clear();
+                    mAdapter.notifyDataSetChanged();
+                }
                 break;
             default:
                 break;
@@ -159,9 +207,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 @Override
+                public void OnNlpData(String nlpString) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            msgList.add(new Msg(nlpString,Msg.TYPE_RECEIVED));
+//                            mAdapter.notifyItemInserted(msgList.size()-1);
+                            mAdapter.notifyDataSetChanged();
+                            mRvChat.scrollToPosition(msgList.size()-1);
+                        }
+                    });
+                }
+
+                @Override
                 public void onOpen() {
                     mAudioTrackOperator.play();
                     mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_wakeUpReply.pcm");
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            msgList.add(new Msg("我在呢",Msg.TYPE_RECEIVED));
+                            mAdapter.notifyItemInserted(msgList.size()-1);
+//                    mAdapter.notifyDataSetChanged();
+                            mRvChat.scrollToPosition(msgList.size()-1);
+                        }
+                    });
+
                 }
 
                 @Override
@@ -407,9 +479,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             String cnt_id = content.optString("cnt_id");
                             String resultString = new String(event.data.getByteArray(cnt_id), "utf-8");
                             if ("iat".equals(sub) && resultString.length() > 2) {
+//                                LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- resultString -- " + resultString);
                                 JSONObject result = new JSONObject(resultString);
                                 JSONObject text = result.optJSONObject("text");
                                 boolean ls = text.optBoolean("ls");//是否结束
+                                int sn = text.optInt("sn");//第几句
                                 JSONArray ws = text.optJSONArray("ws");
                                 StringBuilder currentIatMessage = new StringBuilder();
                                 for (int j = 0; j < ws.length(); j++) {
@@ -424,11 +498,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 if (currentIatMessage!= null && currentIatMessage.length()>0){
                                     mIatMessage = currentIatMessage.toString();
+
+                                    if(sn == 1){
+                                        msgList.add(new Msg(mIatMessage,Msg.TYPE_SEND));
+                                    }else{
+                                        msgList.set(msgList.size()-1,new Msg(mIatMessage,Msg.TYPE_SEND));
+                                    }
+
+//                                    mAdapter.notifyItemInserted(msgList.size()-1);
+                                    mAdapter.notifyDataSetChanged();
+                                    mRvChat.scrollToPosition(msgList.size()-1);
+
                                 }
 
                                 if (ls){
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
+
                                     mWebsocketOperator.sendMessage(mIatMessage);
+
+                                    mAudioTrackOperator.isPlaying = true;
                                 }
 
                             }
@@ -498,7 +586,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onAudio(byte[] audioData, int dataLen) {
             // CAE降噪后音频写入AIUI SDK进行语音交互
-            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
+            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING && !mAudioTrackOperator.isPlaying){
                 String params = "data_type=audio,sample_rate=16000";
                 AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, audioData);
                 mAIUIAgent.sendMessage(msg);
@@ -535,6 +623,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mAudioTrackOperator.shutdownExecutor();
             mAudioTrackOperator.stop();
             mAudioTrackOperator.flush();
+
+            mAudioTrackOperator.isPlaying = false;
 
             // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
             CAE.CAESetRealBeam(5);

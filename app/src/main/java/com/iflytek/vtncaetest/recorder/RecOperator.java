@@ -116,6 +116,10 @@ public class RecOperator {
                 return name.contains("Bothlent UAC Dongle");
             }
         });
+
+        // TODO: 2023/2/6 卡奥斯设备无法获取root权限
+        mPcmCard = 0;
+
 //        RootShell.execRootCmdSilent("setenforce 0");
 //        RootShell.execRootCmdSilent("chmod 777 /dev/snd/pcmC"+mPcmCard+"D"+mPcmDevice+"c");
         mPcmListener = mRecordListener;
