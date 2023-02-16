@@ -44,6 +44,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import jaygoo.widget.wlv.WaveLineView;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static String TAG = MainActivity.class.getSimpleName();
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RecyclerView mRvChat;
     private List<Msg> msgList = new ArrayList<>();
     private MsgAdapter mAdapter;
+    private WaveLineView mWaveLineView;
 
 
     @Override
@@ -103,6 +105,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.status).setOnClickListener(this);
         findViewById(R.id.btnWakeup).setOnClickListener(this);
         findViewById(R.id.btnClear).setOnClickListener(this);
+        mWaveLineView = findViewById(R.id.waveLineView);
+        mWaveLineView.startAnim();
         mRvChat = findViewById(R.id.recyclerview_chat);
         mScrollView = findViewById(R.id.scrollView);
         mResText = findViewById(R.id.res_text);
@@ -738,5 +742,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mWaveLineView.onResume();
+    }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mWaveLineView.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mWaveLineView.release();
+    }
 }
