@@ -116,6 +116,8 @@ public class RecOperator {
                 return name.contains("Bothlent UAC Dongle");
             }
         });
+
+        LogUtil.iTag(TAG,"声卡号获取: " + mPcmCard);
 //        RootShell.execRootCmdSilent("setenforce 0");
 //        RootShell.execRootCmdSilent("chmod 777 /dev/snd/pcmC"+mPcmCard+"D"+mPcmDevice+"c");
         mPcmListener = mRecordListener;

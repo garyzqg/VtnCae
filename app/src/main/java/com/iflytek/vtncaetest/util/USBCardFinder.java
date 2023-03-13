@@ -43,14 +43,14 @@ public final class USBCardFinder {
     public static int fetchCards(int card, SoundCardNameCheck check) {
         cardNum = card;
         if (cardNum == -1) {
-            cardNum = execRootCmd("su", "cat /proc/asound/cards", check);
+            cardNum = execRootCmd("sh", "cat /proc/asound/cards", check);
         }
         if (cardNum == -1) {
             // 865
             cardNum = execRootCmd("ubiot", "cat /proc/asound/cards", check);
         }
-        execRootCmdSilent("setenforce 0");
-        execRootCmdSilent("chmod 777 /dev/snd/pcmC" + cardNum + "D0c");
+//        execRootCmdSilent("setenforce 0");
+//        execRootCmdSilent("chmod 777 /dev/snd/pcmC" + cardNum + "D0c");
         return cardNum;
     }
 
