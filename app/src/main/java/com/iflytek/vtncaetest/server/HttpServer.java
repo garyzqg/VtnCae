@@ -52,7 +52,7 @@ public class HttpServer extends NanoHTTPD {
                 return response;
             } else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_CHANGE_WAKEUP_WORD)) {//切换唤醒词
                 String wakeupWord = parameters.get("WakeupWord").get(0);//唤醒词
-                // TODO: 2023/3/21
+                // TODO: 2023/3/21 当前未使用
                 Response response = responseJsonString(0, "success",null);
                 return response;
             }else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_SET_TOKEN)) {//设置token
@@ -69,8 +69,10 @@ public class HttpServer extends NanoHTTPD {
                 // TODO: 2023/3/21 唤醒
                 Response response = responseJsonString(0, "success",null);
                 return response;
-            }else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_GET_WAKEUP_WORD_LIST)){//获取唤醒词列表
-                // TODO: 2023/3/21
+            } else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_SET_SLEEP)){//手动休眠
+                // TODO: 2023/3/23 休眠 文档没有 待实现
+            } else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_GET_WAKEUP_WORD_LIST)){//获取唤醒词列表
+                // TODO: 2023/3/21 当前未使用
                 WakeupWordData wakeupWordData = new WakeupWordData();
                 wakeupWordData.setCurrWakeupWord("xiaoxinxiaoxin");
                 WakeupWordData.WakeupWord wakeupWord1 = new WakeupWordData.WakeupWord("nihaoxiaoxin","你好小新");

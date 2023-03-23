@@ -7,7 +7,7 @@ package com.iflytek.vtncaetest.server;
  */
 public class ServerConfig {
     //http://10.180.150.107:8080//api/saySomething
-    public static final String HTTP_IP = "10.180.150.107";//手机ip地址
+    public static final String HTTP_IP = "10.180.149.143";//手机ip地址
     public static final int HTTP_PORT = 8080;//自定义
     public static final String HTTP_URL = "http://" + HTTP_IP + ":" + HTTP_PORT;
 
@@ -43,7 +43,9 @@ public class ServerConfig {
     public static final String HTTP_SET_TOKEN = "/bot/service/voice/v1/token";
 
 
-    // TODO: 2023/3/21 暂时未使用
+    /**
+     * 休眠
+     */
     public static final String HTTP_SET_SLEEP = "/bot/service/voice/v1/sleep";
 
 
