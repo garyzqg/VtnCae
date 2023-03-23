@@ -15,4 +15,19 @@
         android:layout_marginTop="20dp"
         android:text="初始化HttpServer"/>
 
+    <Button
+        android:id="@+id/bind_mqtt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="绑定mqtt服务"/>
+
+    <Button
+        android:id="@+id/send_msg_topic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="发送消息"/>
+
+
 </LinearLayout>
