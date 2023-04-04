@@ -25,7 +25,7 @@ public class MqttOperater {
      * 发布消息 唤醒 TOPIC:WAKEUP_TOPIC
      * @param angle 角度
      */
-    public void pulishWakeup(String angle){
+    public void pulishWakeup(int angle){
         if (mMqttServiceConnction != null){
             mMqttServiceConnction.getMqttService().sendMessage(MqttService.WAKEUP_TOPIC,"{\"angle\":\""+angle+"\"}");
         }

@@ -21,10 +21,15 @@ import com.iflytek.aiui.AIUIMessage;
 import com.iflytek.aiui.AIUISetting;
 import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.vtncaetest.audio.AudioTrackOperator;
+import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.cae.CaeOperator;
 import com.iflytek.vtncaetest.cae.OnCaeOperatorlistener;
+import com.iflytek.vtncaetest.mqtt.MqttOperater;
 import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
+import com.iflytek.vtncaetest.server.HttpServer;
+import com.iflytek.vtncaetest.server.ServerConfig;
+import com.iflytek.vtncaetest.util.GsonHelper;
 import com.iflytek.vtncaetest.util.InitUtil;
 import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
@@ -38,6 +43,7 @@ import java.io.InputStream;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import fi.iki.elonen.NanoHTTPD;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static String TAG = MainActivity.class.getSimpleName();
@@ -56,8 +62,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // AIUI工作状态
     private int mAIUIState = AIUIConstant.STATE_IDLE;
 
-
-
     Handler handler = new Handler();
 
     // 录音机工作状态
@@ -67,6 +71,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AudioTrackOperator mAudioTrackOperator;
     private WebsocketOperator mWebsocketOperator;
     private String mIatMessage;//iat有效数据
+
+    private HttpServer mHttpServer;
+    private MqttOperater mMqttOperater;
+    private int mCount = 0;
+
 
 
     @Override
@@ -78,8 +87,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 资源拷贝
         CaeOperator.portingFile(this);
 
-
         InitUtil.init(this);
+
+
+        initSDK();
 
 
     }
@@ -135,16 +146,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initSDK() {
-        // 初始化AIUI
-        createAgent();
         // 初始化CAE
         initCaeEngine();
+        // 初始化AIUI
+        initAIUI();
+
         // 初始化alsa录音
         initAlsa();
+
         //初始化AudioTrack
         initAudioTrack();
         //初始化websocket
         initWebsocket();
+
+        //初始化httpserver
+        initHttpServer();
+
+        //初始化MQTT
+        initMqtt();
+    }
+
+    private void initMqtt() {
+        mMqttOperater = new MqttOperater();
+        mMqttOperater.bindService(this);
+    }
+
+    private void initHttpServer() {
+        mHttpServer = new HttpServer(ServerConfig.HTTP_IP, ServerConfig.HTTP_PORT);
+        //三种启动方式都行
+        //mHttpServer.start()
+        //mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT)
+        try {
+            mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initWebsocket() {
@@ -159,6 +195,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
                 @Override
+                public void OnNlpData(NlpBean nlpBean) {
+                    //intent : command_开头  qa_开头 或其他 分别向不同topic发送消息
+                    String intent = nlpBean.getIntent();
+                    String nlp = GsonHelper.GSON.toJson(nlpBean);
+                    if (intent.startsWith("command_")){
+                        mMqttOperater.pulishCommandTopic(nlp);
+                    }else if (intent.startsWith("qa_")){
+                        mMqttOperater.pulishQaTopic(nlp);
+                    }else {
+                        mMqttOperater.pulishGenaralTopic(nlp);
+                    }
+                }
+
+                @Override
                 public void onOpen() {
                     mAudioTrackOperator.play();
                     mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_wakeUpReply.pcm");
@@ -168,6 +218,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError() {
                     mAudioTrackOperator.play();
                     mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_disconnect.pcm");
+                }
+
+                @Override
+                public void onClose() {
+
                 }
 
             });
@@ -204,10 +259,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     /**
      * 初始化AIUI
      */
-    private void createAgent() {
+    private void initAIUI() {
         if (null == mAIUIAgent) {
-            LogUtil.iTag(TAG, "create aiui agent");
-
             AIUISetting.setSystemInfo(AIUIConstant.KEY_SERIAL_NUM, CaeOperator.AUTH_SN);
 
             mAIUIAgent = AIUIAgent.createAgent(this, getAIUIParams(), mAIUIListener);
@@ -219,8 +272,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             strTip = "AIUI初始化成功!";
         }
         setText(strTip);
-        setText("---------create_AIUI---------");
-
     }
 
     /**
@@ -234,18 +285,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ret = mCaeOperator.initCAE(onCaeOperatorlistener);
                 if(ret == 0){
                     strTip = "CAE初始化成功";
-
                     String ver =  mCaeOperator.getCAEVersion();
-                    LogUtil.iTag(TAG,"vae ver is: "+ver);
-//            initAlsa();
+                    LogUtil.iTag(TAG,"CAE 初始化成功: "+ver);
+
                 }else{
                     strTip = "CAE初始化失败,错误信息为："+ ret;
+                    LogUtil.iTag(TAG,"CAE 初始化失败 错误信息为: "+ret);
                 }
+                setText(strTip);
             }
         }).start();
 
-        setText(strTip);
-        setText("---------init_CAE---------");
+
     }
 
     /**
@@ -254,6 +305,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initAlsa() {
         mRecOperator = new RecOperator();
         mRecOperator.initRec(this,onRecordListener);
+
+        //开始录音
+        startReord();
     }
 
 
@@ -352,7 +406,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }).start();
     }
-
     /**
      * AIUI 回调信息处理
      */
@@ -362,7 +415,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (event.eventType) {
                 case AIUIConstant.EVENT_CONNECTED_TO_SERVER:
                     LogUtil.iTag(TAG,"AIUI -- 已连接服务器");
-                    String uid = event.data.getString("uid");
                     break;
 
                 case AIUIConstant.EVENT_SERVER_DISCONNECTED:
@@ -441,9 +493,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     break;
 
                 case AIUIConstant.EVENT_ERROR:
-                    // TODO: 2023/2/3 错误码11217 偶现 需要重新初始化
-                    setText("错误: " + event.arg1 + "\n" + event.info);
-                    setText("---------error_aiui---------");
+                    //错误码11217 偶现 需要重新初始化
+                    setText("AIUI 错误: " + event.arg1 + "\n" + event.info);
+
+                    //失败后重试3次
+                    if (mCount<3){
+                        mCount++;
+                        mAIUIAgent = null;
+                        initAIUI();
+                    }
                     break;
 
                 case AIUIConstant.EVENT_VAD:
@@ -503,8 +561,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, audioData);
                 mAIUIAgent.sendMessage(msg);
             }
-
-
         }
 
         @Override
@@ -540,8 +596,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             CAE.CAESetRealBeam(5);
 
 
-//            mAudioTrackOperator.play();
-//            mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
+            if (mMqttOperater != null){
+                mMqttOperater.pulishWakeup(angle);
+            }
 
         }
     };
@@ -649,4 +706,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mHttpServer.stop();
+        mMqttOperater.unbindService(this);
+    }
 }

@@ -45,7 +45,7 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.send_msg_topic).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMqttOperater.pulishWakeup("60");
+                mMqttOperater.pulishWakeup(60);
             }
         });
 

@@ -39,8 +39,9 @@ public class MqttService extends Service implements MqttCallback {
     public static final String COMMAND_TOPIC = "/bot/service/voice/order/command";//指令 意图 command_开头
     public static final String CUSTOM_QA_TOPIC = "/bot/service/voice/order/question";//qa_开头
     public static final String GENARAL_TOPIC = "/bot/service/voice/order/general";//除了qa_和command_开头的指令都往这个主题发送
-    public static final String VOICE_RECO_TOPIC = "/bot/service/voice/speechrecognition";//流式语音识别内容  {"text":["今天","天气"，"怎么样"]}
+    public static final String VOICE_RECO_TOPIC = "/bot/service/voice/speechrecognition";//流式语音识别内容  {"text":["今天","天气"，"怎么样"]}  暂时没用
     public static final String VOICE_END_TOPIC = "/bot/service/voice/awakeup/end";//休眠
+    @Deprecated
     public static final String SLEEP_TOPIC = "/bot/server/voice/sleep";//已废弃
 
     @StringDef({WAKEUP_TOPIC, COMMAND_TOPIC, CUSTOM_QA_TOPIC, GENARAL_TOPIC, VOICE_RECO_TOPIC, VOICE_END_TOPIC})

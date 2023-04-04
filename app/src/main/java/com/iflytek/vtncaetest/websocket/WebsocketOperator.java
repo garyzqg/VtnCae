@@ -84,7 +84,10 @@ public class WebsocketOperator {
                   LogUtil.iTag(TAG, "onMessage -- type: " + type);
                   if (TextUtils.equals("nlp", type)) {
                      NlpBean nlpBean = GsonHelper.GSON.fromJson(data, NlpBean.class);
-                     String question = nlpBean.getQuestion();
+                     if (iWebsocketListener != null){
+                        iWebsocketListener.OnNlpData(nlpBean);
+                     }
+
                   } else if (TextUtils.equals("tts", type)) {
                      TtsBean ttsBean = GsonHelper.GSON.fromJson(data, TtsBean.class);
                      boolean is_finish = ttsBean.isIs_finish();
@@ -158,7 +161,9 @@ public class WebsocketOperator {
 
    public interface IWebsocketListener{
       void OnTtsData(byte[] audioData,boolean isFinish);
+      void OnNlpData(NlpBean nlpBean);
       void onOpen();
       void onError();
+      void onClose();
    }
 }
