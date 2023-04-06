@@ -1,9 +1,8 @@
 package payfun.lib.net.rx;
 
 import androidx.annotation.NonNull;
-
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.Observer;
+import io.reactivex.disposables.Disposable;
 import payfun.lib.basis.utils.LogUtil;
 import payfun.lib.net.exception.ExceptionEngine;
 import payfun.lib.net.exception.NetException;

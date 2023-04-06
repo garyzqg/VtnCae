@@ -52,12 +52,13 @@ dependencies {
         exclude group: 'com.google.code.gson'
     }
     api rootProject.ext.dependencies["gson"]
+    //兼容4.4.4版本 必须使用retrofit2 和  rxjava2
     api rootProject.ext.dependencies["retrofit2-adapter"]
     //替换URL
     api rootProject.ext.dependencies["retrofit-url-manager"]
 
     //rx3
-    api rootProject.ext.dependencies["rxjava3"]
-    api rootProject.ext.dependencies["rxandroid3"]
+    api rootProject.ext.dependencies["rxjava2"]
+    api rootProject.ext.dependencies["rxandroid2"]
 
 }

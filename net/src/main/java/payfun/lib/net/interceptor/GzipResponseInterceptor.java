@@ -7,7 +7,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.text.DateFormat;
 
-import io.reactivex.rxjava3.annotations.Nullable;
+import io.reactivex.annotations.Nullable;
 import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;

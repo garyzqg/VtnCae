@@ -3,11 +3,11 @@ package payfun.lib.net.rx;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers;
-import io.reactivex.rxjava3.core.FlowableTransformer;
-import io.reactivex.rxjava3.core.ObservableTransformer;
-import io.reactivex.rxjava3.functions.Function;
-import io.reactivex.rxjava3.schedulers.Schedulers;
+import io.reactivex.FlowableTransformer;
+import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import payfun.lib.net.fun.BaseNetResultFun;
 

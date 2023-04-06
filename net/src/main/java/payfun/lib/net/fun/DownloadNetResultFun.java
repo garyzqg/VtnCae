@@ -1,6 +1,6 @@
 package payfun.lib.net.fun;
 
-import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.functions.Function;
 import okhttp3.ResponseBody;
 import payfun.lib.net.bean.DownloadEntity;
 import payfun.lib.net.convert.ConvertHelper;

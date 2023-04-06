@@ -21,10 +21,13 @@ import com.iflytek.aiui.AIUIMessage;
 import com.iflytek.aiui.AIUISetting;
 import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.vtncaetest.audio.AudioTrackOperator;
+import com.iflytek.vtncaetest.bean.BaseResponse;
+import com.iflytek.vtncaetest.bean.LoginBean;
 import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.cae.CaeOperator;
 import com.iflytek.vtncaetest.cae.OnCaeOperatorlistener;
 import com.iflytek.vtncaetest.mqtt.MqttOperater;
+import com.iflytek.vtncaetest.net.NetConstants;
 import com.iflytek.vtncaetest.net.SpeechNet;
 import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
@@ -43,9 +46,13 @@ import java.io.InputStream;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import fi.iki.elonen.NanoHTTPD;
+import payfun.lib.basis.utils.DeviceUtil;
 import payfun.lib.basis.utils.InitUtil;
 import payfun.lib.basis.utils.LogUtil;
+import payfun.lib.net.exception.ExceptionEngine;
+import payfun.lib.net.exception.NetException;
 import payfun.lib.net.helper.GsonHelper;
+import payfun.lib.net.rx.BaseObserver;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static String TAG = MainActivity.class.getSimpleName();
@@ -93,6 +100,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SpeechNet.init();
 
         initSDK();
+
+        DeviceUtil.getSystemVersion();
 
     }
 
@@ -248,12 +257,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onClose() {
-
+            public void onClose(boolean isLogin) {
+                if (isLogin){//token为空或失效 重新登陆获取token
+                    //登录名和密码暂时写死
+                    login(NetConstants.USER_ACCOUNT,NetConstants.USER_PWD);
+                }
             }
 
         });
 
+    }
+
+    private void login(String userName, String pwd) {
+        SpeechNet.login(userName, pwd, new BaseObserver<BaseResponse<LoginBean>>() {
+            @Override
+            public void onNext(BaseResponse<LoginBean> response) {
+                if (response.isSuccess()){
+                    LoginBean data = response.getData();
+
+                    String accessToken = data.getAccessToken();
+                    if (!TextUtils.isEmpty(accessToken)){
+                        PrefersTool.setAccesstoken(accessToken);
+
+                        //重新初始化websocket 并建联
+                        initWebsocket(true);
+
+                        WebsocketOperator.getInstance().connectWebSocket();
+                    }
+
+                }else {
+                }
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                NetException netException = ExceptionEngine.handleException(e);
+            }
+        });
     }
 
     private void initAudioTrack() {

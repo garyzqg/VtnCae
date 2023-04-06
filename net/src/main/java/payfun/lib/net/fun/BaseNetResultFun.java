@@ -2,7 +2,7 @@ package payfun.lib.net.fun;
 
 import android.util.Base64;
 
-import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.functions.Function;
 import okhttp3.ResponseBody;
 import payfun.lib.basis.utils.CryptUtil;
 import payfun.lib.basis.utils.LogUtil;

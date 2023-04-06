@@ -1,8 +1,8 @@
 package payfun.lib.net.fun;
 
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.functions.Function;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import payfun.lib.net.exception.ExceptionEngine;
 
 /**
@@ -13,7 +13,7 @@ import payfun.lib.net.exception.ExceptionEngine;
 public class NetErrorFun<T> implements Function<Throwable, Observable<T>> {
 
     @Override
-    public Observable<T> apply(Throwable throwable) throws Throwable {
+    public Observable<T> apply(Throwable throwable){
         return Observable.error(ExceptionEngine.handleException(throwable));
     }
 

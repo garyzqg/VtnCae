@@ -3,12 +3,12 @@ package payfun.lib.net.rx;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.reactivex.rxjava3.annotations.NonNull;
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.disposables.Disposable;
-import io.reactivex.rxjava3.internal.disposables.DisposableHelper;
-import io.reactivex.rxjava3.internal.disposables.ListCompositeDisposable;
-import io.reactivex.rxjava3.internal.util.EndConsumerHelper;
+import io.reactivex.Observer;
+import io.reactivex.annotations.NonNull;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.internal.disposables.DisposableHelper;
+import io.reactivex.internal.disposables.ListCompositeDisposable;
+import io.reactivex.internal.util.EndConsumerHelper;
 
 
 /**

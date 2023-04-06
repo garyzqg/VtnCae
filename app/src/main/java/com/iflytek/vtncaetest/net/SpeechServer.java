@@ -3,7 +3,7 @@ package com.iflytek.vtncaetest.net;
 import com.iflytek.vtncaetest.bean.BaseResponse;
 import com.iflytek.vtncaetest.bean.LoginBean;
 
-import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.Observable;
 import okhttp3.RequestBody;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
