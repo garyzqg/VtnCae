@@ -74,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private HttpServer mHttpServer;
     private MqttOperater mMqttOperater;
     private int mCount = 0;
-
+    private String mIntent;
+    private String mNlp;
 
 
     @Override
@@ -221,22 +222,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void OnNlpData(NlpBean nlpBean) {
                 //intent : command_开头  qa_开头 或其他 分别向不同topic发送消息
-                String intent = nlpBean.getIntent();
-                String nlp = GsonHelper.GSON.toJson(nlpBean);
-                if (intent.startsWith("command_")) {
-                    if(TextUtils.equals("command_sleep",intent)){
-                        //休眠
-                        AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
-                        mAIUIAgent.sendMessage(resetWakeupMsg);
-                        //发送消息
-                        mMqttOperater.pulishEnd();
-                    }else {
-                        mMqttOperater.pulishCommandTopic(nlp);
-                    }
-                } else if (intent.startsWith("qa_")) {
-                    mMqttOperater.pulishQaTopic(nlp);
+                mIntent = nlpBean.getIntent();
+                mNlp = GsonHelper.GSON.toJson(nlpBean);
+                if (mIntent.startsWith("command_")) {
+                    //命令意图等播放完成再发布mqtt消息
+
+                } else if (mIntent.startsWith("qa_")) {
+                    mMqttOperater.pulishQaTopic(mNlp);
                 } else {
-                    mMqttOperater.pulishGenaralTopic(nlp);
+                    mMqttOperater.pulishGenaralTopic(mNlp);
                 }
             }
 
@@ -266,6 +260,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mAudioTrackOperator = new AudioTrackOperator();
             mAudioTrackOperator.createStreamModeAudioTrack();
 //            mAudioTrackOperator.play();
+
+            mAudioTrackOperator.setStopListener(new AudioTrackOperator.IAudioTrackListener() {
+                @Override
+                public void onStop() {
+                    //意图类 播报完成再发消息
+                    if (mIntent.startsWith("command_")){
+                        if(TextUtils.equals("command_sleep", mIntent)){
+                            //休眠
+                            AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
+                            mAIUIAgent.sendMessage(resetWakeupMsg);
+                            //发送消息
+                            mMqttOperater.pulishEnd();
+                        }else {
+                            mMqttOperater.pulishCommandTopic(mNlp);
+                        }
+                    }
+                }
+            });
         }
     }
 

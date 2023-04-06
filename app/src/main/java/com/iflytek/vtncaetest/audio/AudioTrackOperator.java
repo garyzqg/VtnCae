@@ -34,8 +34,15 @@ public class AudioTrackOperator {
     private ExecutorService mExecutor;
     private boolean isPlaying = false;
     private int threadCount = 0;
+    private IAudioTrackListener mIAudioTrackListener;
 
+    public void setStopListener(IAudioTrackListener iAudioTrackListener){
+        mIAudioTrackListener = iAudioTrackListener;
+    }
 
+    public interface IAudioTrackListener{
+        void onStop();
+    }
     /**
      * 构建 AudioTrack 实例对象
      */
@@ -92,6 +99,10 @@ public class AudioTrackOperator {
                     if (mAudioTrack != null && isFinish){
                         mAudioTrack.stop();
 //                        mAudioTrack.release();
+
+                        if (mIAudioTrackListener != null){
+                            mIAudioTrackListener.onStop();
+                        }
                     }
                 }
                 threadCount--;
