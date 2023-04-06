@@ -7,6 +7,7 @@ import com.iflytek.vtncaetest.bean.TtsBean;
 import com.iflytek.vtncaetest.util.Base64Utils;
 import com.iflytek.vtncaetest.util.GsonHelper;
 import com.iflytek.vtncaetest.util.LogUtil;
+import com.iflytek.vtncaetest.util.PrefersTool;
 
 import org.java_websocket.enums.ReadyState;
 import org.java_websocket.handshake.ServerHandshake;
@@ -17,6 +18,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.UUID;
 
 /**
  * @author : zhangqinggong
@@ -26,20 +28,42 @@ import java.nio.charset.Charset;
 public class WebsocketOperator {
    private static final String TAG = "WebsocketOperator";
    private JWebSocketClient mClient;
+   private static String sessionId;
+   private static WebsocketOperator instance;
+   private final String BASE_WS_URL_TEST = "ws://10.180.151.125:18088";
+   private final String BASE_WS_URL_PROD = "ws://101.43.161.46:60306";
+   // TODO: 2023/4/4 暂时写死讲解机器人情景id
+   private final String SCENE_ID = "1619893838471073794";
+
+   private WebsocketOperator() {
+   }
+   public static WebsocketOperator getInstance(){
+      if (instance == null){
+         instance = new WebsocketOperator();
+      }
+      return instance;
+   }
+
+   private static void getSessionId() {
+      //启动时生成UUID作为sessionId 如果有登出操作需要重置
+      sessionId = UUID.randomUUID().toString();
+   }
 
    /**
     * websocket初始化
     */
-   public void initWebSocket(IWebsocketListener iWebsocketListener) {
-      if (mClient == null) {
+   public void initWebSocket(boolean reInit,IWebsocketListener iWebsocketListener) {
+      if (reInit || mClient == null) {
+         getSessionId();
          //ws://101.43.161.46:58091/ws？token=fengweisen&scene=xiaoguo_box&voiceName=xiaozhong&speed=50&ttsType=crcloud
-         URI uri = URI.create("ws://101.43.161.46:58091/ws?token=fengweisen&scene=main_box&voiceName=xiaozhong&speed=50&ttsType=crcloud");
+//         URI uri = URI.create("ws://101.43.161.46:58091/ws?token=fengweisen&scene=main_box&voiceName=xiaozhong&speed=50&ttsType=crcloud");
+         URI uri = URI.create(BASE_WS_URL_TEST+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ PrefersTool.getVoiceName()+"&ttsType=azure&sessionId="+sessionId);
          //为了方便对接收到的消息进行处理，可以在这重写onMessage()方法
          LogUtil.iTag(TAG, "WebSocket init");
          mClient = new JWebSocketClient(uri) {
             @Override
             public void onOpen(ServerHandshake handshakedata) {
-               LogUtil.iTag(TAG, "onOpen");
+               LogUtil.iTag(TAG, "WebSocket onOpen");
                if (iWebsocketListener != null){
                   iWebsocketListener.onOpen();
                }
@@ -52,13 +76,14 @@ public class WebsocketOperator {
 
             @Override
             public void onClose(int code, String reason, boolean remote) {
-               LogUtil.iTag(TAG, "onClose: code:" + code + " reason:" + reason + " remote:" + remote);
+               LogUtil.iTag(TAG, "WebSocket onClose: code:" + code + " reason:" + reason + " remote:" + remote);
                // TODO: 2023/1/13 断开连接后 是否控制不往aiui写数据 如何保证websocket的超时和AIUI的超时保持一致?
             }
 
             @Override
             public void onError(Exception ex) {
-               LogUtil.iTag(TAG, "onError:" + ex.toString());
+               ex.printStackTrace();
+               LogUtil.iTag(TAG, "WebSocket onError:" + ex.toString());
                if (iWebsocketListener != null){
                   iWebsocketListener.onError();
                }
@@ -81,7 +106,7 @@ public class WebsocketOperator {
                   JSONObject jsonObject = new JSONObject(message);
                   String type = jsonObject.optString("type");
                   String data = jsonObject.optString("data");
-                  LogUtil.iTag(TAG, "onMessage -- type: " + type);
+                  LogUtil.iTag(TAG, "WebSocket onMessage -- type: " + type);
                   if (TextUtils.equals("nlp", type)) {
                      NlpBean nlpBean = GsonHelper.GSON.fromJson(data, NlpBean.class);
                      if (iWebsocketListener != null){
@@ -92,10 +117,15 @@ public class WebsocketOperator {
                      TtsBean ttsBean = GsonHelper.GSON.fromJson(data, TtsBean.class);
                      boolean is_finish = ttsBean.isIs_finish();
                      String audio = ttsBean.getAudio();
-
-                     byte[] audioByte = Base64Utils.base64EncodeToByte(audio);
-                     if (iWebsocketListener != null){
-                        iWebsocketListener.OnTtsData(audioByte,is_finish);
+                     if (TextUtils.isEmpty(audio)){
+                        if (iWebsocketListener != null){
+                           iWebsocketListener.OnTtsData(null,is_finish);
+                        }
+                     }else {
+                        byte[] audioByte = Base64Utils.base64DecodeToByte(audio);
+                        if (iWebsocketListener != null){
+                           iWebsocketListener.OnTtsData(audioByte,is_finish);
+                        }
                      }
 
                   }
@@ -105,8 +135,15 @@ public class WebsocketOperator {
                }
             }
          };
-
+         setToken();
          mClient.setConnectionLostTimeout(10 * 1000);
+      }
+   }
+
+   private void setToken(){
+      String accesstoken = PrefersTool.getAccesstoken();
+      if (!TextUtils.isEmpty(accesstoken)){
+         mClient.addHeader("Authorization", "Bearer " + accesstoken);
       }
    }
 
@@ -152,13 +189,18 @@ public class WebsocketOperator {
     */
    public void sendMessage(String message) {
       if (mClient != null && mClient.isOpen()) {
-         LogUtil.iTag("JWebSocketClient", "sendMessage:" + message);
+         LogUtil.iTag(TAG, "WebSocket sendMessage:" + message);
          mClient.send(message);
       } else {
          // TODO: 2023/1/13 此时如果是唤醒后超时没有交互,是否不做任何播报?
       }
    }
 
+   public void close(){
+      if (mClient != null && mClient.isOpen()){
+         mClient.close();
+      }
+   }
    public interface IWebsocketListener{
       void OnTtsData(byte[] audioData,boolean isFinish);
       void OnNlpData(NlpBean nlpBean);

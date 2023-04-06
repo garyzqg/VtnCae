@@ -150,7 +150,7 @@ public class MqttService extends Service implements MqttCallback {
             try {
                 androidClient.disconnect();
                 androidClient.unregisterResources();
-                androidClient.close();
+//                androidClient.close();
             } catch (MqttException e) {
                 e.printStackTrace();
             }

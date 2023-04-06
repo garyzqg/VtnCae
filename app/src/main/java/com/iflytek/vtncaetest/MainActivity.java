@@ -32,6 +32,7 @@ import com.iflytek.vtncaetest.server.ServerConfig;
 import com.iflytek.vtncaetest.util.GsonHelper;
 import com.iflytek.vtncaetest.util.InitUtil;
 import com.iflytek.vtncaetest.util.LogUtil;
+import com.iflytek.vtncaetest.util.PrefersTool;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
 import com.iflytek.vtncaetest.websocket.WebsocketOperator;
 
@@ -49,7 +50,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static String TAG = MainActivity.class.getSimpleName();
     private static int ret = 0;
     private static String strTip = "";
-    private static boolean isWakeup = false;
 
     private TextView mResText;
     private ScrollView mScrollView;
@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // 写音频线程工作中
     private static boolean isWriting = false;
     private AudioTrackOperator mAudioTrackOperator;
-    private WebsocketOperator mWebsocketOperator;
     private String mIatMessage;//iat有效数据
 
     private HttpServer mHttpServer;
@@ -129,10 +128,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.audioplay:
                 audioPlayTest();
-//                CAE.CAESetRealBeam(3);
-                break;
-            case R.id.status:
-                LogUtil.iTag(TAG, "state: "+mAudioTrackOperator.getState() +" playState" +mAudioTrackOperator.getPlayState());
                 break;
             default:
                 break;
@@ -157,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //初始化AudioTrack
         initAudioTrack();
         //初始化websocket
-        initWebsocket();
+        initWebsocket(false);
 
         //初始化httpserver
         initHttpServer();
@@ -181,52 +176,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        mHttpServer.setListener(new HttpServer.HttpListener() {
+            @Override
+            public void onChangeTimbre(String timbre) {
+                //切换音色
+                PrefersTool.setVoiceName(timbre);
+                initWebsocket(true);
+            }
+
+            @Override
+            public void onSetToken(String token) {
+                //设置token
+                PrefersTool.setAccesstoken(token);
+                initWebsocket(true);
+            }
+
+            @Override
+            public void onWakeUp() {
+                //手动唤醒
+                wakeup();
+            }
+
+            @Override
+            public void onSleep() {
+                //休眠
+               WebsocketOperator.getInstance().close();
+
+               AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
+               mAIUIAgent.sendMessage(resetWakeupMsg);
+            }
+        });
     }
 
-    private void initWebsocket() {
-        if (mWebsocketOperator == null){
-            mWebsocketOperator = new WebsocketOperator();
-            mWebsocketOperator.initWebSocket(new WebsocketOperator.IWebsocketListener() {
-                @Override
-                public void OnTtsData(byte[] audioData, boolean isFinish) {
-                    // TODO: 2023/1/30 每次都调用play?
-                    mAudioTrackOperator.play();
-                    mAudioTrackOperator.write(audioData,isFinish);
-                }
+    private void initWebsocket(boolean reInit) {
+        WebsocketOperator.getInstance().initWebSocket(reInit, new WebsocketOperator.IWebsocketListener() {
+            @Override
+            public void OnTtsData(byte[] audioData, boolean isFinish) {
+                // TODO: 2023/1/30 每次都调用play?
+                mAudioTrackOperator.play();
+                mAudioTrackOperator.write(audioData, isFinish);
+            }
 
-                @Override
-                public void OnNlpData(NlpBean nlpBean) {
-                    //intent : command_开头  qa_开头 或其他 分别向不同topic发送消息
-                    String intent = nlpBean.getIntent();
-                    String nlp = GsonHelper.GSON.toJson(nlpBean);
-                    if (intent.startsWith("command_")){
-                        mMqttOperater.pulishCommandTopic(nlp);
-                    }else if (intent.startsWith("qa_")){
-                        mMqttOperater.pulishQaTopic(nlp);
+            @Override
+            public void OnNlpData(NlpBean nlpBean) {
+                //intent : command_开头  qa_开头 或其他 分别向不同topic发送消息
+                String intent = nlpBean.getIntent();
+                String nlp = GsonHelper.GSON.toJson(nlpBean);
+                if (intent.startsWith("command_")) {
+                    if(TextUtils.equals("command_sleep",intent)){
+                        //休眠
+                        AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
+                        mAIUIAgent.sendMessage(resetWakeupMsg);
+                        //发送消息
+                        mMqttOperater.pulishEnd();
                     }else {
-                        mMqttOperater.pulishGenaralTopic(nlp);
+                        mMqttOperater.pulishCommandTopic(nlp);
                     }
+                } else if (intent.startsWith("qa_")) {
+                    mMqttOperater.pulishQaTopic(nlp);
+                } else {
+                    mMqttOperater.pulishGenaralTopic(nlp);
                 }
+            }
 
-                @Override
-                public void onOpen() {
-                    mAudioTrackOperator.play();
-                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_wakeUpReply.pcm");
-                }
+            @Override
+            public void onOpen() {
+                mAudioTrackOperator.play();
+                mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_wakeUpReply.pcm");
+            }
 
-                @Override
-                public void onError() {
-                    mAudioTrackOperator.play();
-                    mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_disconnect.pcm");
-                }
+            @Override
+            public void onError() {
+                mAudioTrackOperator.play();
+                mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_disconnect.pcm");
+            }
 
-                @Override
-                public void onClose() {
+            @Override
+            public void onClose() {
 
-                }
+            }
 
-            });
-        }
+        });
+
     }
 
     private void initAudioTrack() {
@@ -480,7 +512,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 if (ls){
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
-                                    mWebsocketOperator.sendMessage(mIatMessage);
+                                    WebsocketOperator.getInstance().sendMessage(mIatMessage);
+
                                 }
 
                             }
@@ -580,17 +613,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             i++;
             setText("唤醒成功,angle:" + a + " beam:" + b );
             setText("---------WAKEUP_CAE---------");
-            // CAE SDK触发唤醒后给AIUI SDK发送手动唤醒事件：让AIUI SDK置于工作状态
-            AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
-            mAIUIAgent.sendMessage(resetWakeupMsg);
-
-            //websocket建联 若已连接状态需要先断开
-            mWebsocketOperator.connectWebSocket();
-
-            //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
-            mAudioTrackOperator.shutdownExecutor();
-            mAudioTrackOperator.stop();
-            mAudioTrackOperator.flush();
+            wakeup();
 
             // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
             CAE.CAESetRealBeam(5);
@@ -602,6 +625,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     };
+
+    private void wakeup() {
+        // CAE SDK触发唤醒后给AIUI SDK发送手动唤醒事件：让AIUI SDK置于工作状态
+        AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
+        mAIUIAgent.sendMessage(resetWakeupMsg);
+
+        //websocket建联 若已连接状态需要先断开
+        WebsocketOperator.getInstance().connectWebSocket();
+
+        //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
+        mAudioTrackOperator.shutdownExecutor();
+        mAudioTrackOperator.stop();
+        mAudioTrackOperator.flush();
+    }
 
 
     /**
