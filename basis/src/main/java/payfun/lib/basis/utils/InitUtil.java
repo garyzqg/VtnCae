@@ -1,4 +1,4 @@
-package com.iflytek.vtncaetest.util;
+package payfun.lib.basis.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -8,9 +8,9 @@ import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.text.TextUtils;
 
+
 /**
- * @author : 时光
- * e-mail : qurongzhen@pay.media
+ * @author : zhangqg
  * date   : 2021/5/6 11:30
  * desc   : <工具类初始化 InitUtil>
  */

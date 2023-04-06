@@ -4,8 +4,6 @@ import android.text.TextUtils;
 
 import com.iflytek.vtncaetest.bean.ServerResponse;
 import com.iflytek.vtncaetest.bean.WakeupWordData;
-import com.iflytek.vtncaetest.util.GsonHelper;
-import com.iflytek.vtncaetest.util.LogUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import fi.iki.elonen.NanoHTTPD;
+import payfun.lib.basis.utils.LogUtil;
+import payfun.lib.net.helper.GsonHelper;
 
 /**
  * @author : zhangqinggong

@@ -7,12 +7,12 @@ import com.iflytek.vtncaetest.mqtt.MqttOperater;
 import com.iflytek.vtncaetest.mqtt.MqttServiceConnction;
 import com.iflytek.vtncaetest.server.HttpServer;
 import com.iflytek.vtncaetest.server.ServerConfig;
-import com.iflytek.vtncaetest.util.InitUtil;
 
 import java.io.IOException;
 
 import androidx.appcompat.app.AppCompatActivity;
 import fi.iki.elonen.NanoHTTPD;
+import payfun.lib.basis.utils.InitUtil;
 
 public class TestActivity extends AppCompatActivity {
 

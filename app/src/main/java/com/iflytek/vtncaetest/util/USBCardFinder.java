@@ -9,6 +9,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import payfun.lib.basis.utils.LogUtil;
+
 /**
  * Android运行linux命令
  */

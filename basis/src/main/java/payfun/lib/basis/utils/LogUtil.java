@@ -1,4 +1,4 @@
-package com.iflytek.vtncaetest.util;
+package payfun.lib.basis.utils;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
@@ -54,8 +54,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.RequiresApi;
 
 /**
- * @author : 时光
- * e-mail : qurongzhen@pay.media
+ * @author : zhangqg
  * date   : 2021/5/6 13:58
  * desc   : <日志>
  */
@@ -498,7 +497,7 @@ public final class LogUtil {
             sb.append(formatBundle2String(mExtras));
             sb.append('}');
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
+        if (Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1) {
             Intent mSelector = intent.getSelector();
             if (mSelector != null) {
                 if (!first) {
@@ -848,7 +847,7 @@ public final class LogUtil {
         /**
          * log 写入文件开关，默认关
          */
-        private boolean mLog2FileSwitch = true;
+        private boolean mLog2FileSwitch = false;
         /**
          * log 边框开关，默认开
          */

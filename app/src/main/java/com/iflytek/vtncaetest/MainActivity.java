@@ -25,13 +25,11 @@ import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.cae.CaeOperator;
 import com.iflytek.vtncaetest.cae.OnCaeOperatorlistener;
 import com.iflytek.vtncaetest.mqtt.MqttOperater;
+import com.iflytek.vtncaetest.net.SpeechNet;
 import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
 import com.iflytek.vtncaetest.server.HttpServer;
 import com.iflytek.vtncaetest.server.ServerConfig;
-import com.iflytek.vtncaetest.util.GsonHelper;
-import com.iflytek.vtncaetest.util.InitUtil;
-import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.PrefersTool;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
 import com.iflytek.vtncaetest.websocket.WebsocketOperator;
@@ -45,6 +43,9 @@ import java.io.InputStream;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import fi.iki.elonen.NanoHTTPD;
+import payfun.lib.basis.utils.InitUtil;
+import payfun.lib.basis.utils.LogUtil;
+import payfun.lib.net.helper.GsonHelper;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
     private static String TAG = MainActivity.class.getSimpleName();
@@ -88,10 +89,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         CaeOperator.portingFile(this);
 
         InitUtil.init(this);
-
+        //网络初始化
+        SpeechNet.init();
 
         initSDK();
-
 
     }
 

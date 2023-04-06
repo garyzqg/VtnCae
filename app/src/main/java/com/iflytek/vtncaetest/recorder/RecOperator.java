@@ -6,10 +6,11 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.iflytek.alsa.AlsaRecorder;
-import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.USBCardFinder;
 
 import java.io.RandomAccessFile;
+
+import payfun.lib.basis.utils.LogUtil;
 
 
 public class RecOperator {

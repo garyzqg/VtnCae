@@ -6,7 +6,6 @@ import android.content.Context;
 import com.iflytek.iflyos.cae.CAE;
 import com.iflytek.iflyos.cae.ICAEListener;
 import com.iflytek.vtncaetest.util.FileUtil;
-import com.iflytek.vtncaetest.util.LogUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,6 +15,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+
+import payfun.lib.basis.utils.LogUtil;
 
 
 public class CaeOperator {

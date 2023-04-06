@@ -1,4 +1,4 @@
-package com.iflytek.vtncaetest.util;
+package payfun.lib.net.helper;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -6,9 +6,9 @@ import com.google.gson.GsonBuilder;
 import java.lang.reflect.Modifier;
 
 /**
- * @author : zhangqinggong
- * date    : 2023/1/13 15:17
- * desc    : Gson帮助类
+ * @author : zhangqg
+ * date   : 2022/6/8 11:31
+ * desc   : <Gson帮助类>
  */
 public class GsonHelper {
 

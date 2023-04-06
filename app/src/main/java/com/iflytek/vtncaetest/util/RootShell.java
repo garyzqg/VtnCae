@@ -4,6 +4,8 @@ package com.iflytek.vtncaetest.util;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import payfun.lib.basis.utils.LogUtil;
+
 /**
  * Android运行linux命令
  */

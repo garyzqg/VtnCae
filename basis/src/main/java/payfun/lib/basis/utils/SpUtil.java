@@ -1,4 +1,4 @@
-package com.iflytek.vtncaetest.util;
+package payfun.lib.basis.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;

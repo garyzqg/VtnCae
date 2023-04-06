@@ -5,8 +5,6 @@ import android.text.TextUtils;
 import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.bean.TtsBean;
 import com.iflytek.vtncaetest.util.Base64Utils;
-import com.iflytek.vtncaetest.util.GsonHelper;
-import com.iflytek.vtncaetest.util.LogUtil;
 import com.iflytek.vtncaetest.util.PrefersTool;
 
 import org.java_websocket.enums.ReadyState;
@@ -19,6 +17,9 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.UUID;
+
+import payfun.lib.basis.utils.LogUtil;
+import payfun.lib.net.helper.GsonHelper;
 
 /**
  * @author : zhangqinggong

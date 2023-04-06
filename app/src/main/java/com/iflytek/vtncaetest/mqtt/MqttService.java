@@ -6,7 +6,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.provider.Settings;
 
-import com.iflytek.vtncaetest.util.LogUtil;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -21,6 +20,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringDef;
+import payfun.lib.basis.utils.LogUtil;
 
 /**
  * @author : zhangqinggong
