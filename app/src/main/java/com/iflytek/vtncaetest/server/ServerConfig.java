@@ -6,10 +6,6 @@ package com.iflytek.vtncaetest.server;
  * desc    : HTTP接口URI,外部调用
  */
 public class ServerConfig {
-    //http://10.180.150.107:8080//api/saySomething
-    public static final String HTTP_IP = "10.180.149.241";//手机ip地址
-    public static final int HTTP_PORT = 8080;//自定义
-    public static final String HTTP_URL = "http://" + HTTP_IP + ":" + HTTP_PORT;
 
     /**
      * 切换音色 POST

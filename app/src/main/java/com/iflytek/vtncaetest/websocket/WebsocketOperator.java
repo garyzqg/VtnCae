@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.iflytek.vtncaetest.bean.NlpBean;
 import com.iflytek.vtncaetest.bean.TtsBean;
+import com.iflytek.vtncaetest.net.NetConstants;
 import com.iflytek.vtncaetest.util.Base64Utils;
 import com.iflytek.vtncaetest.util.PrefersTool;
 
@@ -31,8 +32,7 @@ public class WebsocketOperator {
    private JWebSocketClient mClient;
    private static String sessionId;
    private static WebsocketOperator instance;
-   private final String BASE_WS_URL_TEST = "ws://10.180.151.125:18088";
-   private final String BASE_WS_URL_PROD = "ws://101.43.161.46:60306";
+
    // TODO: 2023/4/4 暂时写死讲解机器人情景id
    private final String SCENE_ID = "1619893838471073794";
 
@@ -58,7 +58,7 @@ public class WebsocketOperator {
          getSessionId();
          //ws://101.43.161.46:58091/ws？token=fengweisen&scene=xiaoguo_box&voiceName=xiaozhong&speed=50&ttsType=crcloud
 //         URI uri = URI.create("ws://101.43.161.46:58091/ws?token=fengweisen&scene=main_box&voiceName=xiaozhong&speed=50&ttsType=crcloud");
-         URI uri = URI.create(BASE_WS_URL_TEST+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ PrefersTool.getVoiceName()+"&ttsType=azure&sessionId="+sessionId);
+         URI uri = URI.create(NetConstants.BASE_WS_URL_TEST+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ PrefersTool.getVoiceName()+"&ttsType=azure&sessionId="+sessionId);
          //为了方便对接收到的消息进行处理，可以在这重写onMessage()方法
          LogUtil.iTag(TAG, "WebSocket init");
          mClient = new JWebSocketClient(uri) {

@@ -32,7 +32,6 @@ import com.iflytek.vtncaetest.net.SpeechNet;
 import com.iflytek.vtncaetest.recorder.RecOperator;
 import com.iflytek.vtncaetest.recorder.RecordListener;
 import com.iflytek.vtncaetest.server.HttpServer;
-import com.iflytek.vtncaetest.server.ServerConfig;
 import com.iflytek.vtncaetest.util.PrefersTool;
 import com.iflytek.vtncaetest.util.RecordAudioUtil;
 import com.iflytek.vtncaetest.websocket.WebsocketOperator;
@@ -42,10 +41,12 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import fi.iki.elonen.NanoHTTPD;
+import okhttp3.ResponseBody;
 import payfun.lib.basis.utils.DeviceUtil;
 import payfun.lib.basis.utils.InitUtil;
 import payfun.lib.basis.utils.LogUtil;
@@ -72,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Handler handler = new Handler();
 
+    private String[] voiceNames = {"YunfengNeural","XiaomengNeural","XiaomoNeural","YunhaoNeural","XiaoshuangNeural"};
+
     // 录音机工作状态
     private static boolean isRecording = false;
     // 写音频线程工作中
@@ -84,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int mCount = 0;
     private String mIntent;
     private String mNlp;
+    private int httpCount = 0;
 
 
     @Override
@@ -99,10 +103,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //网络初始化
         SpeechNet.init();
 
+        //开机后先请求接口 告诉应用端我已经启动了
+        notice();
+
         initSDK();
 
         DeviceUtil.getSystemVersion();
 
+    }
+
+    private void notice() {
+        SpeechNet.register(new BaseObserver<ResponseBody>() {
+            @Override
+            public void onNext(ResponseBody response) {
+                try {
+                    String data = response.string();
+                } catch (IOException e) {
+
+                }
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                NetException netException = ExceptionEngine.handleException(e);
+                if (httpCount <5){
+                    notice();
+                    httpCount++;
+                }
+            }
+        });
     }
 
     private void initLayout() {
@@ -178,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initHttpServer() {
-        mHttpServer = new HttpServer(ServerConfig.HTTP_IP, ServerConfig.HTTP_PORT);
+        mHttpServer = new HttpServer(NetConstants.HTTP_SERVER_IP, NetConstants.HTTP_SERVER_PORT);
         //三种启动方式都行
         //mHttpServer.start()
         //mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT)
@@ -198,9 +228,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onSetToken(String token) {
+                // TODO: 2023/4/6 需要改为传递登录用户名和密码
                 //设置token
-                PrefersTool.setAccesstoken(token);
-                initWebsocket(true);
+//                PrefersTool.setAccesstoken(token);
+//                initWebsocket(true);
             }
 
             @Override
@@ -247,7 +278,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onOpen() {
                 mAudioTrackOperator.play();
-                mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_wakeUpReply.pcm");
+                String voiceName = PrefersTool.getVoiceName();
+                if (!Arrays.asList().contains(voiceName)){
+                    voiceName = "XiaoshuangNeural";
+                }
+                mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+voiceName+"_box_wakeUpReply.pcm");
             }
 
             @Override

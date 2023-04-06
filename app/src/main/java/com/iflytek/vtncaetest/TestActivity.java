@@ -5,8 +5,8 @@ import android.view.View;
 
 import com.iflytek.vtncaetest.mqtt.MqttOperater;
 import com.iflytek.vtncaetest.mqtt.MqttServiceConnction;
+import com.iflytek.vtncaetest.net.NetConstants;
 import com.iflytek.vtncaetest.server.HttpServer;
-import com.iflytek.vtncaetest.server.ServerConfig;
 
 import java.io.IOException;
 
@@ -28,7 +28,7 @@ public class TestActivity extends AppCompatActivity {
         findViewById(R.id.init).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mHttpServer = new HttpServer(ServerConfig.HTTP_IP, ServerConfig.HTTP_PORT);
+                mHttpServer = new HttpServer(NetConstants.HTTP_SERVER_IP, NetConstants.HTTP_SERVER_PORT);
                 //三种启动方式都行
                 //mHttpServer.start()
                 //mHttpServer.start(NanoHTTPD.SOCKET_READ_TIMEOUT)

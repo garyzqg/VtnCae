@@ -6,6 +6,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.provider.Settings;
 
+import com.iflytek.vtncaetest.net.NetConstants;
+
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -30,7 +32,7 @@ import payfun.lib.basis.utils.LogUtil;
 public class MqttService extends Service implements MqttCallback {
     private static final String TAG = "MqttService";
     private static MqttAndroidClient androidClient;
-    private static final String HOST = "ws://10.180.149.110:8083/mqtt";
+
     private static String CLIENTID = "";
     private static final int QOS = 0;	//传输质量
     private MqttConnectOptions connectOptions;
@@ -60,7 +62,7 @@ public class MqttService extends Service implements MqttCallback {
 
         CLIENTID =  Settings.System.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
-        androidClient = new MqttAndroidClient(this,HOST,CLIENTID);
+        androidClient = new MqttAndroidClient(this, NetConstants.MQTT_HOST,CLIENTID);
         androidClient.setCallback(this);
         connectOptions = new MqttConnectOptions();
         connectOptions.setCleanSession(true);//是否保存离线消息 false保存离线消息，下次上线可以接收离线时接收到的消息；true不保存离线消息，下次上线不接收离线时接收到的消息；
