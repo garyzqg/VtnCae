@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //登录名和密码暂时写死
                     login(NetConstants.USER_ACCOUNT,NetConstants.USER_PWD);
                 }else if (code == 1001){
-                    //超时 需要发送mqtt告知应用层
+                    //正常超时 需要发送mqtt告知应用层
                     mMqttOperater.pulishEnd();
                 }
             }
@@ -361,6 +361,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
             });
+
+            //开机播报欢迎词
+            mAudioTrackOperator.play();
+            mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_welcome.pcm");
         }
     }
 
