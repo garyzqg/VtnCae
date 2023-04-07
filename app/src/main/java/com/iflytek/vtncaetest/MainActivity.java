@@ -47,7 +47,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import fi.iki.elonen.NanoHTTPD;
 import okhttp3.ResponseBody;
-import payfun.lib.basis.utils.DeviceUtil;
 import payfun.lib.basis.utils.InitUtil;
 import payfun.lib.basis.utils.LogUtil;
 import payfun.lib.net.exception.ExceptionEngine;
@@ -73,6 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Handler handler = new Handler();
 
+    //支持的音色
     private String[] voiceNames = {"YunfengNeural","XiaomengNeural","XiaomoNeural","YunhaoNeural","XiaoshuangNeural"};
 
     // 录音机工作状态
@@ -84,10 +84,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private HttpServer mHttpServer;
     private MqttOperater mMqttOperater;
-    private int mCount = 0;
+    private int mAiuiCount = 0;//AIUI初始化重试次数
+    private int mHttpCount = 0;//调用应用绑定接口重试次数
+    private int wakeUpFlag = 0;//0 语音唤醒 1 手动唤醒
     private String mIntent;
     private String mNlp;
-    private int httpCount = 0;
 
 
     @Override
@@ -107,9 +108,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         notice();
 
         initSDK();
-
-        DeviceUtil.getSystemVersion();
-
     }
 
     private void notice() {
@@ -127,9 +125,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onError(Throwable e) {
                 NetException netException = ExceptionEngine.handleException(e);
-                if (httpCount <5){
+                if (mHttpCount <5){
                     notice();
-                    httpCount++;
+                    mHttpCount++;
                 }
             }
         });
@@ -238,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onWakeUp() {
                 //手动唤醒
                 wakeup();
+                wakeUpFlag = 1;
             }
 
             @Override
@@ -277,12 +276,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onOpen() {
-                mAudioTrackOperator.play();
-                String voiceName = PrefersTool.getVoiceName();
-                if (!Arrays.asList().contains(voiceName)){
-                    voiceName = "XiaoshuangNeural";
+                if (wakeUpFlag == 0){
+                    mAudioTrackOperator.play();
+                    String voiceName = PrefersTool.getVoiceName();
+                    if (!Arrays.asList(voiceNames).contains(voiceName)){
+                        voiceName = "XiaoshuangNeural";
+                    }
+                    mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+voiceName+"_box_wakeUpReply.pcm");
                 }
-                mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+voiceName+"_box_wakeUpReply.pcm");
             }
 
             @Override
@@ -622,8 +623,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     setText("AIUI 错误: " + event.arg1 + "\n" + event.info);
 
                     //失败后重试3次
-                    if (mCount<3){
-                        mCount++;
+                    if (mAiuiCount <3){
+                        mAiuiCount++;
                         mAIUIAgent = null;
                         initAIUI();
                     }
@@ -706,6 +707,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             setText("唤醒成功,angle:" + a + " beam:" + b );
             setText("---------WAKEUP_CAE---------");
             wakeup();
+
+            wakeUpFlag = 0;
 
             // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
             CAE.CAESetRealBeam(5);
