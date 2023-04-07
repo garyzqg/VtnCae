@@ -283,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         voiceName = "XiaoshuangNeural";
                     }
                     mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+voiceName+"_box_wakeUpReply.pcm");
+                }else {
+                    mAudioTrackOperator.isPlaying = false;
                 }
             }
 
@@ -439,7 +441,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(!isRecording && mRecOperator != null){
             if(isWriting){
                 setText("正在写音频测试中，等结束后再开启录音测试");
-                setText("---------start_alsa_record---------");
                 return;
             }
             ret = mRecOperator.startrecord();
@@ -453,7 +454,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 distoryRecord();
             }
             setText(strTip);
-            setText("---------start_alsa_record---------");
         }
     }
 
