@@ -87,7 +87,7 @@ public class WebsocketOperator {
                LogUtil.iTag(TAG, "WebSocket onClose: code:" + code + " reason:" + reason + " remote:" + remote);
                // TODO: 2023/1/13 断开连接后 是否控制不往aiui写数据 如何保证websocket的超时和AIUI的超时保持一致?
                 if (iWebsocketListener != null){
-                    iWebsocketListener.onClose(reason.contains("401"));
+                    iWebsocketListener.onClose(code,reason);
                 }
             }
 
@@ -217,6 +217,6 @@ public class WebsocketOperator {
       void OnNlpData(NlpBean nlpBean);
       void onOpen();
       void onError();
-      void onClose(boolean isLogin);
+      void onClose(int code, String reason);
    }
 }

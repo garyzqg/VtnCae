@@ -295,12 +295,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
             @Override
-            public void onClose(boolean isLogin) {
-                if (isLogin){//token为空或失效 重新登陆获取token
+            public void onClose(int code, String reason) {
+                //code: 1000 正常关闭(如客户端触发)  1001 服务器关闭(如超时) 1002 协议错误(如token问题)
+                if (code == 1002 && reason.contains("401")){//token为空或失效 重新登陆获取token
                     //登录名和密码暂时写死
                     login(NetConstants.USER_ACCOUNT,NetConstants.USER_PWD);
-                }else {
-                    //正常超时 需要发送mqtt告知应用层
+                }else if (code == 1001){
+                    //超时 需要发送mqtt告知应用层
                     mMqttOperater.pulishEnd();
                 }
             }
