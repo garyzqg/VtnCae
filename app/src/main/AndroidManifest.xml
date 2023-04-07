@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:sharedUserId="android.uid.system"
-    package="com.iflytek.vtncaetest">
+    package="com.inspur.robotspeech">
     <!-- android:sharedUserId="android.uid.system" -->
     <application
         android:allowBackup="true"
