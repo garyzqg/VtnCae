@@ -22,10 +22,10 @@ public class NetConstants {
     public static final String BASE_WS_URL_PROD = "ws://101.43.161.46:60306";
 
     //mqtt
-    public static final String MQTT_HOST = "ws://10.180.149.110:8083/mqtt";
+    public static final String MQTT_HOST = "ws://192.168.10.50:8083/mqtt";
 
     //httpserver
-    public static final String HTTP_SERVER_IP = "10.180.149.241";//手机ip地址
+    public static final String HTTP_SERVER_IP = "192.168.10.219";//手机ip地址
     public static final int HTTP_SERVER_PORT = 8080;//自定义
 
 }

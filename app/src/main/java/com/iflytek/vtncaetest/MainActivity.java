@@ -296,6 +296,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (isLogin){//token为空或失效 重新登陆获取token
                     //登录名和密码暂时写死
                     login(NetConstants.USER_ACCOUNT,NetConstants.USER_PWD);
+                }else {
+                    //正常超时 需要发送mqtt告知应用层
+                    mMqttOperater.pulishEnd();
                 }
             }
 
@@ -602,6 +605,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
 
+                                    mAudioTrackOperator.isPlaying = true;
                                 }
 
                             }
@@ -677,7 +681,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onAudio(byte[] audioData, int dataLen) {
             // CAE降噪后音频写入AIUI SDK进行语音交互
-            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING){
+            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING && !mAudioTrackOperator.isPlaying){
                 String params = "data_type=audio,sample_rate=16000";
                 AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, audioData);
                 mAIUIAgent.sendMessage(msg);
