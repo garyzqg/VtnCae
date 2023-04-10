@@ -32,7 +32,7 @@ public class AudioTrackOperator {
     private final static int mPcmFormat = AudioFormat.ENCODING_PCM_16BIT;
 
     private AudioTrack mAudioTrack;
-    private boolean mBoolean;
+
     private ExecutorService mExecutor;
     public boolean isPlaying = false;
     private int threadCount = 0;
