@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import payfun.lib.basis.utils.InitUtil;
+
 /**
  * @author : 张庆功
  * date   : 2023/1/6 10:26
@@ -201,6 +203,28 @@ public class AudioTrackOperator {
         if (mAudioTrack != null && mAudioTrack.getState() != AudioTrack.STATE_UNINITIALIZED){
             mAudioTrack.flush();
         }
+    }
+
+    /**
+     * 设置音量
+     * @param progress
+     */
+    public void setVolume(int progress) {
+        AudioManager mAudioManager = (AudioManager) InitUtil.getAppContext().getSystemService(Context.AUDIO_SERVICE);
+        try {
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, progress, 0);
+        } catch (Exception e) {
+
+        }
+    }
+
+    /**
+     * 获取当前音量
+     */
+    public int getVolume() {
+        AudioManager mAudioManager = (AudioManager) InitUtil.getAppContext().getSystemService(Context.AUDIO_SERVICE);
+        int streamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        return streamVolume;
     }
 
     public int getPlayState() {
