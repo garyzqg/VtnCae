@@ -5,6 +5,9 @@ import android.text.TextUtils;
 import com.inspur.robotspeech.bean.ServerResponse;
 import com.inspur.robotspeech.bean.WakeupWordData;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -32,25 +35,34 @@ public class HttpServer extends NanoHTTPD {
     }
     @Override
     public Response serve(IHTTPSession session) {
-        //打印请求数据
-//        LogUtil.iTag(TAG, "serve getRemoteHostName: " + session.getRemoteHostName());
         LogUtil.iTag(TAG, "serve uri: " + session.getUri());
-        try {
-            //post请求需要先调用parseBody 否则getParameters获取不到参数
-            session.parseBody(new HashMap<String, String>());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ResponseException e) {
-            e.printStackTrace();
-        }
 
         Map<String, List<String>> parameters = session.getParameters();
         if (session.getMethod() == Method.POST){
-            LogUtil.iTag(TAG, "serve POST body: " + session.getQueryParameterString());
-            if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_CHANGE_TIMBRE)) {//切换音色
-//                String scene = parameters.get("scene").get(0);//情景
-                String voiceName = parameters.get("voiceName").get(0);//音色名称
+            Map<String, String> postBodys = new HashMap<String, String>();
+            JSONObject json = null;
+            try {
+                //post请求需要先调用parseBody 将参数映射到postBodys中(只针对json格式body,如果是form表单还需要到parameters取)
+                session.parseBody(postBodys);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ResponseException e) {
+                e.printStackTrace();
+            }
 
+            LogUtil.iTag(TAG, "serve POST body: " + postBodys);
+
+            String body= postBodys.get("postData");
+
+            try {
+                json = new JSONObject(body);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_CHANGE_TIMBRE)) {//切换音色
+                String voiceName = json.optString("voiceName");//音色
+//                String scene = json.optString("scene");//情景 暂时不用
                 if (httpListener != null){
                     httpListener.onChangeTimbre(voiceName);
                 }
@@ -63,7 +75,7 @@ public class HttpServer extends NanoHTTPD {
                 Response response = responseJsonString(0, "success",null);
                 return response;
             }else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_SET_TOKEN)) {//设置token
-                String token = parameters.get("botID").get(0);//token
+                String token = json.optString("botID");//token
                 if (httpListener != null){
                     httpListener.onSetToken(token);
                 }
@@ -81,7 +93,6 @@ public class HttpServer extends NanoHTTPD {
                 Response response = responseJsonString(0, "success",null);
                 return response;
             } else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_SET_SLEEP)){//手动休眠
-                // TODO: 2023/3/23 休眠 文档没有 待实现
                 if (httpListener != null){
                     httpListener.onSleep();
                 }
