@@ -35,7 +35,6 @@ public class MqttOperater {
      * 发布消息 超时后休眠 需要重新唤醒 TOPIC:VOICE_END_TOPIC
      */
     public void pulishEnd(){
-        // TODO: 2023/3/23 待实现逻辑 用户说"请闭嘴" "别说话了"触发休眠
         if (mMqttServiceConnction != null){
             mMqttServiceConnction.getMqttService().sendMessage(MqttService.VOICE_END_TOPIC,"{\"sleep\":\"1\"}");
         }

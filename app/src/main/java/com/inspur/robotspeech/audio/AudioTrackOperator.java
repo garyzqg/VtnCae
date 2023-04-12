@@ -86,7 +86,7 @@ public class AudioTrackOperator {
      */
     public void write(byte[] buffer,boolean isFinish) {
         if (mExecutor == null){
-                mExecutor = Executors.newSingleThreadExecutor();
+            mExecutor = Executors.newSingleThreadExecutor();
         }
         if (mExecutor != null){
             mExecutor.submit(() -> {

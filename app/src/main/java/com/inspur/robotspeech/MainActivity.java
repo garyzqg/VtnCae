@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void notice() {
+        // TODO: 2023/4/12 待测试
         SpeechNet.register(new BaseObserver<ResponseBody>() {
             @Override
             public void onNext(ResponseBody response) {
