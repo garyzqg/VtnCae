@@ -39,8 +39,6 @@ public class WebsocketOperator {
    private final String TTS_TYPE_XF = "xfyun";
    //tts渠道 - 微软
    private final String TTS_TYPE_WR = "azure";
-   //科大讯飞TTS只支持这一个音色
-   private final String VOICE_NAME = "x2_xiaojuan";
 
    private WebsocketOperator() {
    }
@@ -65,7 +63,7 @@ public class WebsocketOperator {
          //ws://101.43.161.46:58091/ws？token=fengweisen&scene=xiaoguo_box&voiceName=xiaozhong&speed=50&ttsType=crcloud
 //         URI uri = URI.create("ws://101.43.161.46:58091/ws?token=fengweisen&scene=main_box&voiceName=xiaozhong&speed=50&ttsType=crcloud");
 //         URI uri = URI.create(NetConstants.BASE_WS_URL_TEST+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ PrefersTool.getVoiceName()+"&ttsType="+TTS_TYPE_WR+"&sessionId="+sessionId);
-         URI uri = URI.create(NetConstants.BASE_WS_URL_PROD+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ VOICE_NAME+"&ttsType="+TTS_TYPE_XF+"&sessionId="+sessionId);
+         URI uri = URI.create(NetConstants.BASE_WS_URL_PROD+"/expressing/ws?sceneId="+SCENE_ID+"&voiceName="+ PrefersTool.getVoiceName()+"&ttsType="+TTS_TYPE_XF+"&sessionId="+sessionId);
          //为了方便对接收到的消息进行处理，可以在这重写onMessage()方法
          LogUtil.iTag(TAG, "WebSocket init");
          mClient = new JWebSocketClient(uri) {

@@ -41,7 +41,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -71,9 +70,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int mAIUIState = AIUIConstant.STATE_IDLE;
 
     Handler handler = new Handler();
-
-    //支持的音色
-    private String[] voiceNames = {"YunfengNeural","XiaomengNeural","XiaomoNeural","YunhaoNeural","XiaoshuangNeural"};
 
     // 录音机工作状态
     private static boolean isRecording = false;
@@ -166,17 +162,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 writeAudioTest();
                 break;
             case R.id.audioplay:
-                audioPlayTest();
+//                audioPlayTest();
                 break;
             default:
                 break;
         }
 
-    }
-
-    private void audioPlayTest() {
-        mAudioTrackOperator.play();
-        mAudioTrackOperator.writeSource(MainActivity.this,"audio/xiaojuan_box_welcome.pcm");
     }
 
     private void initSDK() {
@@ -278,11 +269,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onOpen() {
                 if (wakeUpFlag == 0){
                     mAudioTrackOperator.play();
-                    String voiceName = PrefersTool.getVoiceName();
-                    if (!Arrays.asList(voiceNames).contains(voiceName)){
-                        voiceName = "XiaoshuangNeural";
-                    }
-                    mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+voiceName+"_box_wakeUpReply.pcm");
+                    mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_wakeUpReply.pcm");
                 }else {
                     mAudioTrackOperator.isPlaying = false;
                 }
@@ -291,7 +278,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onError() {
                 mAudioTrackOperator.play();
-                mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_disconnect.pcm");
+                mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_disconnect.pcm");
             }
 
             @Override
@@ -364,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             //开机播报欢迎词
             mAudioTrackOperator.play();
-            mAudioTrackOperator.writeSource(MainActivity.this, "audio/xiaojuan_box_welcome.pcm");
+            mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_welcome.pcm");
         }
     }
 

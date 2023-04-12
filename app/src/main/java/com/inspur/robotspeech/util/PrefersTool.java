@@ -1,5 +1,7 @@
 package com.inspur.robotspeech.util;
 
+import java.util.Arrays;
+
 import payfun.lib.basis.utils.SpUtil;
 
 /**
@@ -10,6 +12,8 @@ import payfun.lib.basis.utils.SpUtil;
 public class PrefersTool {
     private static final String VOICE_NAME = "voice_name";//音色
     private static final String ACCESS_TOKEN = "accesstoken";
+    //支持的音色 果果/标准/萌萌
+    private static String[] voiceNames = {"aisjiuxu","x2_xiaojuan","xiaoyan"};
 
     public static void setAccesstoken(String accesstoken) {
         SpUtil.getInstance().put(ACCESS_TOKEN, accesstoken);
@@ -22,7 +26,11 @@ public class PrefersTool {
         SpUtil.getInstance().put(VOICE_NAME, voiceName);
     }
     public static String getVoiceName() {
-        return SpUtil.getInstance().getString(VOICE_NAME, "XiaoshuangNeural");
+        String voiceName = SpUtil.getInstance().getString(VOICE_NAME, "x2_xiaojuan");
+        if (!Arrays.asList(voiceNames).contains(voiceName)){
+            voiceName = "x2_xiaojuan";
+        }
+        return voiceName;
     }
 
 }
