@@ -731,13 +731,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
         mAIUIAgent.sendMessage(resetWakeupMsg);
 
-        //websocket建联 若已连接状态需要先断开
-        WebsocketOperator.getInstance().connectWebSocket();
-
         //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
         mAudioTrackOperator.shutdownExecutor();
         mAudioTrackOperator.stop();
         mAudioTrackOperator.flush();
+
+        //websocket建联 若已连接状态需要先断开
+        WebsocketOperator.getInstance().connectWebSocket();
+
+
     }
 
 

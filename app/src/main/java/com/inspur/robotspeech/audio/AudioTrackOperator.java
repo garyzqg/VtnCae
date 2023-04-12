@@ -131,8 +131,11 @@ public class AudioTrackOperator {
      * @param fileName
      */
     public void writeSource(Context context, String fileName) {
-        Thread t = new Thread(new Runnable() {
-            public void run() {
+        if (mExecutor == null){
+            mExecutor = Executors.newSingleThreadExecutor();
+        }
+        if (mExecutor != null){
+            mExecutor.submit(() -> {
                 //获取文件输入流 我这里存放在assets中
                 InputStream dis = null;
                 try{
@@ -154,10 +157,8 @@ public class AudioTrackOperator {
 //                        mAudioTrack.release();
                     }
                 }
-
-            }
-        });
-        t.start();
+            });
+        }
     }
 
     /**
