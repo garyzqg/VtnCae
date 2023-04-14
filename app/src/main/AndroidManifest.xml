@@ -5,6 +5,7 @@
     package="com.inspur.robotspeech">
     <!-- android:sharedUserId="android.uid.system" -->
     <application
+        android:name="payfun.lib.basis.BasisApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"

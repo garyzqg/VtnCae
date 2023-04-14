@@ -5,8 +5,8 @@ import android.content.ComponentCallbacks2;
 import android.content.Context;
 
 import androidx.multidex.MultiDex;
-
 import payfun.lib.basis.utils.InitUtil;
+import payfun.lib.basis.utils.MyExceptionHandler;
 
 /**
  * @author : zhangqg
@@ -25,6 +25,7 @@ public class BasisApp extends Application {
     public void onCreate() {
         super.onCreate();
         InitUtil.init(this);
+        Thread.setDefaultUncaughtExceptionHandler(new MyExceptionHandler(this));
     }
 
     @Override

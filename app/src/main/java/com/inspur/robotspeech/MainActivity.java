@@ -50,7 +50,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import fi.iki.elonen.NanoHTTPD;
 import okhttp3.ResponseBody;
-import payfun.lib.basis.utils.InitUtil;
 import payfun.lib.basis.utils.LogUtil;
 import payfun.lib.net.exception.ExceptionEngine;
 import payfun.lib.net.exception.NetException;
@@ -100,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // 资源拷贝
         CaeOperator.portingFile(this);
 
-        InitUtil.init(this);
+//        InitUtil.init(this);
         //网络初始化
         SpeechNet.init();
 
