@@ -85,24 +85,33 @@ public class RecOperator {
         mHandler = new Handler(handlerThread.getLooper()) {
             @Override
             public void handleMessage(Message msg) {
+                String message = "";
+                boolean b = false;
                 switch (msg.what) {
                     case CMD_START:
                         if (mAlsaRecorder != null){
                             int recRet = mAlsaRecorder.startRecording(mAlsaPcmListener);
                             if (0 == recRet) {
-                                LogUtil.iTag(TAG, "ALSA -- start recording sucess...");
+                                b = true;
                             }else {
-                                LogUtil.iTag(TAG, "ALSA -- start recording fail...");
+                                message="ALSA -- startRecord fail...";
                             }
                         }else {
-                            LogUtil.iTag(TAG, "ALSA -- mAlsaRecorder is null...");
+                            message = "ALSA -- startRecord mAlsaRecorder null...";
+                        }
+
+                        if (mRecordListener != null){
+                            mRecordListener.startRecordStatus(b,message);
                         }
                         break;
                     case CMD_STOP:
                         mAlsaRecorder.stopRecording();
-                        LogUtil.iTag(TAG, "ALSA -- stopRecd ok...");
+                        message = "ALSA -- stoptRecord success...";
                         break;
                 }
+
+                LogUtil.iTag(TAG, message);
+
             }
         };
 

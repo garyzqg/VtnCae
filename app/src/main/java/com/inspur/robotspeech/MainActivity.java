@@ -1,6 +1,10 @@
 package com.inspur.robotspeech;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetManager;
 import android.media.AudioTrack;
 import android.os.Build;
@@ -104,8 +108,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         notice();
 
         initSDK();
+
+        // 注册广播接收器 接收USB插拔监听 环形麦
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("usbChange");
+        this.registerReceiver(new UsbReceiver() , filter);
     }
 
+    //定义一个广播接收器
+    public class UsbReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Bundle bundle = intent.getExtras();
+            int status = bundle.getInt("usbStatus");
+
+            if (status == 0){//环形麦连接
+                LogUtil.iTag(TAG,"环形麦已连接");
+                setText("环形麦已连接");
+                //重新连接后先暂停录音 再重新开始
+                stopRecord();
+                startReord();
+            }else {//环形麦断开
+                LogUtil.iTag(TAG,"环形麦已断开");
+                setText("环形麦已断开");
+            }
+        }
+    }
     private void notice() {
         // TODO: 2023/4/12 待测试
         SpeechNet.register(new BaseObserver<ResponseBody>() {
@@ -437,16 +465,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             }
             ret = mRecOperator.startrecord();
-            if(0 == ret){
-                strTip = "开启录音成功！";
-                isRecording = true;
-            }else if(111111 == ret){
-                strTip = "AlsaRecorder is null ...";
-            }else {
-                strTip = "开启录音失败，请查看/dev/snd/下的设备节点是否有777权限！\nAndroid 8.0 以上需要暂时使用setenforce 0 命令关闭Selinux权限！";
-                distoryRecord();
-            }
-            setText(strTip);
+//            if(0 == ret){
+//                strTip = "开启录音成功！";
+//                isRecording = true;
+//            }else if(111111 == ret){
+//                strTip = "AlsaRecorder is null ...";
+//            }else {
+//                strTip = "开启录音失败，请查看/dev/snd/下的设备节点是否有777权限！\nAndroid 8.0 以上需要暂时使用setenforce 0 命令关闭Selinux权限！";
+//                distoryRecord();
+//            }
+//            setText(strTip);
         }
     }
 
@@ -457,7 +485,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mCaeOperator.stopSaveAudio();
             isRecording = false;
             setText("停止录音");
-            setText("---------stop_alsa_record---------");
         }
     }
 
@@ -759,6 +786,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // 写入CAE引擎
             mCaeOperator.writeAudioTest(bytes);
 
+        }
+
+        @Override
+        public void startRecordStatus(boolean isSuccess,String msg) {
+            if (isSuccess){
+                setText("开启录音成功");
+                isRecording = true;
+            }else {
+                setText("开启录音失败");
+                setText(msg);
+                isRecording = false;
+            }
         }
     };
 
