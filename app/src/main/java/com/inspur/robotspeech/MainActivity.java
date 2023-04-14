@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int mAiuiCount = 0;//AIUI初始化重试次数
     private int mHttpCount = 0;//调用应用绑定接口重试次数
     private int wakeUpFlag = 0;//0 语音唤醒 1 手动唤醒
+    private boolean detached = false;//是否断联
     private String mIntent;
     private String mNlp;
 
@@ -124,10 +125,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (status == 0){//环形麦连接
                 LogUtil.iTag(TAG,"环形麦已连接");
                 setText("环形麦已连接");
-                //重新连接后先暂停录音 再重新开始
-                stopRecord();
-                startReord();
+                //重新连接后先暂停录音 再重新开始 只针对使用过程中断开再连接的情况
+                if (detached){
+                    detached = false;
+                    stopRecord();
+                    startReord();
+                }
             }else {//环形麦断开
+                detached = true;
                 LogUtil.iTag(TAG,"环形麦已断开");
                 setText("环形麦已断开");
             }
