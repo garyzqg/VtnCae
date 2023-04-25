@@ -626,6 +626,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     mIatMessage = currentIatMessage.toString();
                                 }
 
+                                //发送流式识别结果
+                                mMqttOperater.pulishVoiceRecTopic(ws.toString());
+
                                 if (ls){
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
