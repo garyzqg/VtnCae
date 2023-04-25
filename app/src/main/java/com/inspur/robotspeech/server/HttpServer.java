@@ -82,6 +82,13 @@ public class HttpServer extends NanoHTTPD {
                 //这个接口code 200 表示成功 且参数结构与其它接口不一致
                 Response response = newFixedLengthResponse("{\"code\":200, \"data\" : \"{}\"}");
                 return response;
+            }else if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_SET_VOLUME)) {//设置音量
+                int volume = json.optInt("volume");//token
+                if (httpListener != null){
+                    httpListener.onSetVolume(volume);
+                }
+                Response response = responseJsonString(0, "success",null);
+                return response;
             }
         }else {
             LogUtil.iTag(TAG, "serve GET parameter: " + session.getQueryParameterString());
@@ -129,5 +136,6 @@ public class HttpServer extends NanoHTTPD {
         void onSetToken(String token);
         void onWakeUp();
         void onSleep();
+        void onSetVolume(int volume);
     }
 }

@@ -271,6 +271,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
                mAIUIAgent.sendMessage(resetWakeupMsg);
             }
+
+            @Override
+            public void onSetVolume(int volume) {
+                //设置音量
+                mAudioTrackOperator.setVolume(volume);
+            }
         });
     }
 

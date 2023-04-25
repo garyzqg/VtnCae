@@ -44,6 +44,11 @@ public class ServerConfig {
      */
     public static final String HTTP_SET_SLEEP = "/bot/service/voice/v1/sleep";
 
+    /**
+     * 设置音量
+     */
+    public static final String HTTP_SET_VOLUME = "/bot/service/voice/v1/setvolume";
+
 
 
 }
