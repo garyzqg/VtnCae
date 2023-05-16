@@ -6,6 +6,9 @@ package com.inspur.robotspeech.net;
  * desc    : 网络常量
  */
 public class NetConstants {
+    public static final boolean lOG_SWITCH = true;
+
+
     public static final String USER_ACCOUNT = "lixingyu";
     public static final String USER_PWD = "Aa111111";
 

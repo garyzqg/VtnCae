@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static boolean isRecording = false;
     // 写音频线程工作中
     private static boolean isWriting = false;
-    private AudioTrackOperator mAudioTrackOperator;
     private String mIatMessage;//iat有效数据
 
     private HttpServer mHttpServer;
@@ -99,10 +98,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         requestPermissions();
         // 资源拷贝
         CaeOperator.portingFile(this);
-
-//        InitUtil.init(this);
-        //网络初始化
-        SpeechNet.init();
 
         //开机后先请求接口 告诉应用端我已经启动了
         notice();
@@ -275,7 +270,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onSetVolume(int volume) {
                 //设置音量
-                mAudioTrackOperator.setVolume(volume);
+                AudioTrackOperator.getInstance().setVolume(volume);
             }
         });
     }
@@ -284,9 +279,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         WebsocketOperator.getInstance().initWebSocket(reInit, new WebsocketOperator.IWebsocketListener() {
             @Override
             public void OnTtsData(byte[] audioData, boolean isFinish) {
-                // TODO: 2023/1/30 每次都调用play?
-                mAudioTrackOperator.play();
-                mAudioTrackOperator.write(audioData, isFinish);
+                AudioTrackOperator.getInstance().write(audioData, isFinish);
             }
 
             @Override
@@ -307,17 +300,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onOpen() {
                 if (wakeUpFlag == 0){
-                    mAudioTrackOperator.play();
-                    mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_wakeUpReply.pcm");
+                    AudioTrackOperator.getInstance().writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_wakeUpReply.pcm");
                 }else {
-                    mAudioTrackOperator.isPlaying = false;
+                    AudioTrackOperator.getInstance().isPlaying = false;
                 }
             }
 
             @Override
             public void onError() {
-                mAudioTrackOperator.play();
-                mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_disconnect.pcm");
+                AudioTrackOperator.getInstance().writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_disconnect.pcm");
             }
 
             @Override
@@ -365,33 +356,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initAudioTrack() {
-        if (mAudioTrackOperator == null){
-            mAudioTrackOperator = new AudioTrackOperator();
-            mAudioTrackOperator.createStreamModeAudioTrack();
-//            mAudioTrackOperator.play();
-
-            mAudioTrackOperator.setStopListener(new AudioTrackOperator.IAudioTrackListener() {
-                @Override
-                public void onStop() {
-                    //意图类 播报完成再发消息
-                    if (mIntent.startsWith("command_")){
-                        if(TextUtils.equals("command_sleep", mIntent)){
-                            //休眠
-                            AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
-                            mAIUIAgent.sendMessage(resetWakeupMsg);
-                            //发送消息
-                            mMqttOperater.pulishEnd();
-                        }else {
-                            mMqttOperater.pulishCommandTopic(mNlp);
-                        }
+        AudioTrackOperator.getInstance().createStreamModeAudioTrack();
+        AudioTrackOperator.getInstance().setStopListener(new AudioTrackOperator.IAudioTrackListener() {
+            @Override
+            public void onStop() {
+                //意图类 播报完成再发消息
+                if (mIntent.startsWith("command_")) {
+                    if (TextUtils.equals("command_sleep", mIntent)) {
+                        //休眠
+                        AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
+                        mAIUIAgent.sendMessage(resetWakeupMsg);
+                        //发送消息
+                        mMqttOperater.pulishEnd();
+                    } else {
+                        mMqttOperater.pulishCommandTopic(mNlp);
                     }
                 }
-            });
+            }
+        });
 
-            //开机播报欢迎词
-            mAudioTrackOperator.play();
-            mAudioTrackOperator.writeSource(MainActivity.this, "audio/"+PrefersTool.getVoiceName()+"_box_welcome.pcm");
-        }
+        //开机播报欢迎词
+        AudioTrackOperator.getInstance().writeSource(MainActivity.this, "audio/" + PrefersTool.getVoiceName() + "_box_welcome.pcm");
+
     }
 
 
@@ -639,7 +625,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
 
-                                    mAudioTrackOperator.isPlaying = true;
+                                    AudioTrackOperator.getInstance().isPlaying = true;
                                 }
 
                             }
@@ -715,7 +701,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onAudio(byte[] audioData, int dataLen) {
             // CAE降噪后音频写入AIUI SDK进行语音交互
-            if(mAIUIState == AIUIConstant.STATE_WORKING && mAudioTrackOperator.getPlayState() != AudioTrack.PLAYSTATE_PLAYING && !mAudioTrackOperator.isPlaying){
+            if(mAIUIState == AIUIConstant.STATE_WORKING && AudioTrackOperator.getInstance().getPlayState() != AudioTrack.PLAYSTATE_PLAYING && !AudioTrackOperator.getInstance().isPlaying){
                 String params = "data_type=audio,sample_rate=16000";
                 AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, audioData);
                 mAIUIAgent.sendMessage(msg);
@@ -760,9 +746,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mAIUIAgent.sendMessage(resetWakeupMsg);
 
         //播放本地音频文件 欢迎 需要先停止当前播放且释放队列内数据
-        mAudioTrackOperator.shutdownExecutor();
-        mAudioTrackOperator.stop();
-        mAudioTrackOperator.flush();
+//        mAudioTrackOperator.shutdownExecutor();
+//        mAudioTrackOperator.stop();
+//        mAudioTrackOperator.flush();
 
         //websocket建联 若已连接状态需要先断开
         WebsocketOperator.getInstance().connectWebSocket();

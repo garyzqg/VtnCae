@@ -41,7 +41,7 @@ public class MyBroadReceiver extends BroadcastReceiver {
              * Intent.FLAG_ACTIVITY_CLEAR_TOP
              */
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(mainIntent);
+//            context.startActivity(mainIntent);
 
 
 //            context.startService(mainIntent);

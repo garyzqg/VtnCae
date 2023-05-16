@@ -175,11 +175,11 @@ public class WebsocketOperator {
                if (!mClient.isOpen()) {
                   try {
                      if (mClient.getReadyState().equals(ReadyState.NOT_YET_CONNECTED)) {
+                        LogUtil.iTag(TAG, "WebSocket connect");
                         mClient.connectBlocking();
-                        LogUtil.iTag("JWebSocketClient", "WebSocket connect");
                      } else if (mClient.getReadyState().equals(ReadyState.CLOSING) || mClient.getReadyState().equals(ReadyState.CLOSED)) {
+                        LogUtil.iTag(TAG, "WebSocket reconnect");
                         mClient.reconnectBlocking();
-                        LogUtil.iTag("JWebSocketClient", "WebSocket reconnect");
                      }
                   } catch (InterruptedException e) {
                      e.printStackTrace();
