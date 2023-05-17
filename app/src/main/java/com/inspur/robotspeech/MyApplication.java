@@ -35,6 +35,8 @@ public class MyApplication extends BasisApp {
         initCrash(MyApplication.this);
         //网络初始化
         SpeechNet.init();
+
+        LogUtil.iTag(TAG,"onCreate()");
     }
 
     @MainThread
@@ -51,16 +53,20 @@ public class MyApplication extends BasisApp {
     @Override
     public void onLowMemory() {
         super.onLowMemory();
+        LogUtil.iTag(TAG,"onLowMemory()");
     }
 
     @Override
     public void onTerminate() {
         super.onTerminate();
+        LogUtil.iTag(TAG,"onTerminate()");
     }
+
 
     @Override
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
+        LogUtil.iTag(TAG,"onTrimMemory() level === " + level);
         if (level > ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
             //后台进程
             //表示应用程序所有UI界面被隐藏了，即用户点击了Home键或者Back键导致引用的UI界面不可见。应释放一些资源。

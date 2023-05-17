@@ -93,6 +93,7 @@ public class RecOperator {
                             int recRet = mAlsaRecorder.startRecording(mAlsaPcmListener);
                             if (0 == recRet) {
                                 b = true;
+                                message = "ALSA -- startRecord SUCCESS";
                             }else {
                                 message="ALSA -- startRecord fail...";
                             }
@@ -106,7 +107,7 @@ public class RecOperator {
                         break;
                     case CMD_STOP:
                         mAlsaRecorder.stopRecording();
-                        message = "ALSA -- stoptRecord success...";
+                        message = "ALSA -- stopRecord success...";
                         break;
                 }
 

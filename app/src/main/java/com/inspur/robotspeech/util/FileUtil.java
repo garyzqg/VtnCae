@@ -74,7 +74,7 @@ public class FileUtil {
             return;
         }
 
-        DateFormat df = new SimpleDateFormat("MM-dd-hh-mm-ss", Locale.CHINA);
+        DateFormat df = new SimpleDateFormat("MM-dd hh:mm:ss", Locale.CHINA);
         String filename = df.format(new Date());
         String pcmPath = WRITE_PCM_DIR + filename  + PCM_SURFFIX;
 

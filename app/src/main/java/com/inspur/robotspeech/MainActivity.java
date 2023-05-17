@@ -96,11 +96,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         initLayout();
         requestPermissions();
+
+        LogUtil.iTag(TAG,"onCreate()");
         // 资源拷贝
         CaeOperator.portingFile(this);
 
         //开机后先请求接口 告诉应用端我已经启动了
-        notice();
+//        notice();
 
         initSDK();
 
@@ -874,7 +876,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LogUtil.iTag(TAG,"onDestroy()");
         mHttpServer.stop();
         mMqttOperater.unbindService(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LogUtil.iTag(TAG,"onPause()");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        LogUtil.iTag(TAG,"onStop()");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        LogUtil.iTag(TAG,"onResume()");
     }
 }

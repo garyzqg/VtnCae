@@ -1,6 +1,7 @@
 package com.inspur.robotspeech.websocket;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.inspur.robotspeech.bean.NlpBean;
 import com.inspur.robotspeech.bean.TtsBean;
@@ -20,6 +21,7 @@ import java.nio.charset.Charset;
 import java.util.UUID;
 
 import payfun.lib.basis.utils.LogUtil;
+import payfun.lib.basis.utils.ToastUtil;
 import payfun.lib.net.helper.GsonHelper;
 
 /**
@@ -181,8 +183,10 @@ public class WebsocketOperator {
                         LogUtil.iTag(TAG, "WebSocket reconnect");
                         mClient.reconnectBlocking();
                      }
-                  } catch (InterruptedException e) {
+                  } catch (Exception e) {
                      e.printStackTrace();
+                     LogUtil.iTag(TAG, Log.getStackTraceString(e));
+                     ToastUtil.showLong("服务调用异常");
                   }
                }
             }
