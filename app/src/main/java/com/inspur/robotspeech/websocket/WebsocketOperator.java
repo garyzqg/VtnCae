@@ -201,12 +201,16 @@ public class WebsocketOperator {
     * @param message
     */
    public void sendMessage(String message) {
-      if (mClient != null && mClient.isOpen()) {
+//      if (mClient != null && mClient.isOpen()) {
          LogUtil.iTag(TAG, "WebSocket sendMessage:" + message);
          mClient.send(message);
-      } else {
+//      } else {
          // TODO: 2023/1/13 此时如果是唤醒后超时没有交互,是否不做任何播报?
-      }
+//      }
+   }
+
+   public boolean isOpen(){
+      return mClient != null && mClient.isOpen();
    }
 
    public void close(){

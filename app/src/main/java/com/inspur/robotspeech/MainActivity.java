@@ -322,6 +322,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else if (code == 1001){
                     //正常超时 需要发送mqtt告知应用层
                     mMqttOperater.pulishEnd();
+
+                    //AIUI休眠
+                    AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
+                    mAIUIAgent.sendMessage(wakeupMsg);
                 }
             }
 
@@ -623,7 +627,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //发送流式识别结果
                                 mMqttOperater.pulishVoiceRecTopic(ws.toString());
 
-                                if (ls && !TextUtils.isEmpty(mIatMessage)){
+                                if (ls && !TextUtils.isEmpty(mIatMessage) && WebsocketOperator.getInstance().isOpen()){
                                     //ls:true后取最后一条不为空的数据发送
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
@@ -754,6 +758,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //        mAudioTrackOperator.shutdownExecutor();
 //        mAudioTrackOperator.stop();
 //        mAudioTrackOperator.flush();
+
+        AudioTrackOperator.getInstance().stop();
 
         //websocket建联 若已连接状态需要先断开
         WebsocketOperator.getInstance().connectWebSocket();
