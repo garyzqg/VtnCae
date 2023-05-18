@@ -735,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             wakeUpFlag = 0;
 
             // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
-            CAE.CAESetRealBeam(5);
+            CAE.CAESetRealBeam(0);
 
 
             if (mMqttOperater != null){
