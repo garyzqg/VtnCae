@@ -623,9 +623,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 //发送流式识别结果
                                 mMqttOperater.pulishVoiceRecTopic(ws.toString());
 
-                                if (ls){
+                                if (ls && !TextUtils.isEmpty(mIatMessage)){
+                                    //ls:true后取最后一条不为空的数据发送
                                     LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
+                                    //发送之后置空
+                                    mIatMessage = "";
 
                                     AudioTrackOperator.getInstance().isPlaying = true;
                                 }
