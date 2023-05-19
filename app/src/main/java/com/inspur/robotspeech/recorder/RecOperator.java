@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import android.os.Message;
 
 import com.iflytek.alsa.AlsaRecorder;
+import com.inspur.robotspeech.mqtt.MqttOperater;
 import com.inspur.robotspeech.util.USBCardFinder;
 
 import java.io.RandomAccessFile;
@@ -112,7 +113,8 @@ public class RecOperator {
                 }
 
                 LogUtil.iTag(TAG, message);
-
+                //mqtt log
+                MqttOperater.getInstance().pulishLog(message);
             }
         };
 

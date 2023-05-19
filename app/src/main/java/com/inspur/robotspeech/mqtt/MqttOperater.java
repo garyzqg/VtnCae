@@ -11,6 +11,16 @@ import android.content.Intent;
 public class MqttOperater {
     private MqttServiceConnction mMqttServiceConnction;
 
+    private static MqttOperater instance;
+    public static MqttOperater getInstance(){
+        if (instance == null){
+            instance = new MqttOperater();
+        }
+        return instance;
+    }
+
+    private MqttOperater() {
+    }
     /**
      * 绑定服务 mqtt建联
      * @param context
@@ -79,6 +89,19 @@ public class MqttOperater {
     public void pulishVoiceRecTopic(String rec){
         if (mMqttServiceConnction != null){
             mMqttServiceConnction.getMqttService().sendMessage(MqttService.VOICE_RECO_TOPIC,rec);
+        }
+    }
+
+
+
+    /**
+     * 发布消息 重要日志监控
+     *
+     * {"text":["今天","天气"，"怎么样"]}
+     */
+    public void pulishLog(String log){
+        if (mMqttServiceConnction != null && mMqttServiceConnction.getMqttService() != null && mMqttServiceConnction.getMqttService().isConnected()){
+            mMqttServiceConnction.getMqttService().sendMessage(MqttService.LOG_TOPIC,log);
         }
     }
 

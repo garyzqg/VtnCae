@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.inspur.robotspeech.bean.ServerResponse;
 import com.inspur.robotspeech.bean.WakeupWordData;
+import com.inspur.robotspeech.mqtt.MqttOperater;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,7 +36,7 @@ public class HttpServer extends NanoHTTPD {
     }
     @Override
     public Response serve(IHTTPSession session) {
-        LogUtil.iTag(TAG, "serve uri: " + session.getUri());
+        log( "serve uri: " + session.getUri());
 
         Map<String, List<String>> parameters = session.getParameters();
         if (session.getMethod() == Method.POST){
@@ -50,7 +51,7 @@ public class HttpServer extends NanoHTTPD {
                 e.printStackTrace();
             }
 
-            LogUtil.iTag(TAG, "serve POST body: " + postBodys);
+            log( "serve POST body: " + postBodys);
 
             String body= postBodys.get("postData");
 
@@ -91,7 +92,7 @@ public class HttpServer extends NanoHTTPD {
                 return response;
             }
         }else {
-            LogUtil.iTag(TAG, "serve GET parameter: " + session.getQueryParameterString());
+            log( "serve GET parameter: " + session.getQueryParameterString());
             if (TextUtils.equals(session.getUri(), ServerConfig.HTTP_WAKEUP)) {//手动唤醒
                 //没有参数
                 if (httpListener != null){
@@ -137,5 +138,12 @@ public class HttpServer extends NanoHTTPD {
         void onWakeUp();
         void onSleep();
         void onSetVolume(int volume);
+    }
+
+    private void log(String logMsg){
+        //log
+        LogUtil.iTag(TAG,logMsg);
+        //mqtt log
+        MqttOperater.getInstance().pulishLog(logMsg);
     }
 }

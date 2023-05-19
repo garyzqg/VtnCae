@@ -43,10 +43,11 @@ public class MqttService extends Service implements MqttCallback {
     public static final String GENARAL_TOPIC = "/bot/service/voice/order/general";//除了qa_和command_开头的指令都往这个主题发送
     public static final String VOICE_RECO_TOPIC = "/bot/service/voice/speechrecognition";//流式语音识别内容  {"text":["今天","天气"，"怎么样"]}  暂时没用
     public static final String VOICE_END_TOPIC = "/bot/service/voice/awakeup/end";//休眠
+    public static final String LOG_TOPIC = "/bot/service/voice/log";//日志
     @Deprecated
     public static final String SLEEP_TOPIC = "/bot/server/voice/sleep";//已废弃
 
-    @StringDef({WAKEUP_TOPIC, COMMAND_TOPIC, CUSTOM_QA_TOPIC, GENARAL_TOPIC, VOICE_RECO_TOPIC, VOICE_END_TOPIC})
+    @StringDef({WAKEUP_TOPIC, COMMAND_TOPIC, CUSTOM_QA_TOPIC, GENARAL_TOPIC, VOICE_RECO_TOPIC, VOICE_END_TOPIC,LOG_TOPIC})
     @Retention(RetentionPolicy.SOURCE)
     public @interface Topic {
 
@@ -85,6 +86,7 @@ public class MqttService extends Service implements MqttCallback {
         }
     }
 
+
     private IMqttActionListener iMqttActionListener = new IMqttActionListener() {
         @Override
         public void onSuccess(IMqttToken asyncActionToken) {
@@ -94,6 +96,7 @@ public class MqttService extends Service implements MqttCallback {
 
         @Override
         public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+            exception.printStackTrace();
             //连接失败
             LogUtil.iTag(TAG,"MQTT connect fail " + exception.toString());
             //已设置自动重连
@@ -111,6 +114,10 @@ public class MqttService extends Service implements MqttCallback {
         public MqttService getService(){
             return MqttService.this;
         }
+    }
+
+    public boolean isConnected(){
+        return androidClient != null && androidClient.isConnected();
     }
 
     //发送消息

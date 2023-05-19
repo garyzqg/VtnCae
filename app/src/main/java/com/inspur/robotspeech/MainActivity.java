@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String mIatMessage;//iat有效数据
 
     private HttpServer mHttpServer;
-    private MqttOperater mMqttOperater;
     private int mAiuiCount = 0;//AIUI初始化重试次数
     private int mHttpCount = 0;//调用应用绑定接口重试次数
     private int wakeUpFlag = 0;//0 语音唤醒 1 手动唤醒
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             int status = bundle.getInt("usbStatus");
 
             if (status == 0){//环形麦连接
-                LogUtil.iTag(TAG,"环形麦已连接");
+                log("环形麦已连接");
                 setText("环形麦已连接");
                 //重新连接后先暂停录音 再重新开始 只针对使用过程中断开再连接的情况
                 if (detached){
@@ -130,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }else {//环形麦断开
                 detached = true;
-                LogUtil.iTag(TAG,"环形麦已断开");
+                log("环形麦已断开");
                 setText("环形麦已断开");
             }
         }
@@ -201,6 +200,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initSDK() {
+        //初始化MQTT
+        initMqtt();
+
         // 初始化CAE
         initCaeEngine();
         // 初始化AIUI
@@ -217,13 +219,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //初始化httpserver
         initHttpServer();
 
-        //初始化MQTT
-        initMqtt();
+
     }
 
     private void initMqtt() {
-        mMqttOperater = new MqttOperater();
-        mMqttOperater.bindService(this);
+        MqttOperater.getInstance().bindService(this);
     }
 
     private void initHttpServer() {
@@ -293,9 +293,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     //命令意图等播放完成再发布mqtt消息
 
                 } else if (mIntent.startsWith("qa_")) {
-                    mMqttOperater.pulishQaTopic(mNlp);
+                    MqttOperater.getInstance().pulishQaTopic(mNlp);
                 } else {
-                    mMqttOperater.pulishGenaralTopic(mNlp);
+                    MqttOperater.getInstance().pulishGenaralTopic(mNlp);
                 }
             }
 
@@ -321,7 +321,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     login(NetConstants.USER_ACCOUNT,NetConstants.USER_PWD);
                 }else if (code == 1001){
                     //正常超时 需要发送mqtt告知应用层
-                    mMqttOperater.pulishEnd();
+                    MqttOperater.getInstance().pulishEnd();
 
                     //AIUI休眠
                     AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
@@ -373,9 +373,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         AIUIMessage resetWakeupMsg = new AIUIMessage(AIUIConstant.CMD_RESET_WAKEUP, 0, 0, "", null);
                         mAIUIAgent.sendMessage(resetWakeupMsg);
                         //发送消息
-                        mMqttOperater.pulishEnd();
+                        MqttOperater.getInstance().pulishEnd();
                     } else {
-                        mMqttOperater.pulishCommandTopic(mNlp);
+                        MqttOperater.getInstance().pulishCommandTopic(mNlp);
                     }
                 }
             }
@@ -435,11 +435,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(ret == 0){
                     strTip = "CAE初始化成功";
                     String ver =  mCaeOperator.getCAEVersion();
-                    LogUtil.iTag(TAG,"CAE 初始化成功: "+ver);
+                    log("CAE 初始化成功: "+ver);
 
                 }else{
                     strTip = "CAE初始化失败,错误信息为："+ ret;
-                    LogUtil.iTag(TAG,"CAE 初始化失败 错误信息为: "+ret);
+                    log("CAE 初始化失败 错误信息为: "+ret);
                 }
                 setText(strTip);
             }
@@ -560,20 +560,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onEvent(AIUIEvent event) {
             switch (event.eventType) {
                 case AIUIConstant.EVENT_CONNECTED_TO_SERVER:
-                    LogUtil.iTag(TAG,"AIUI -- 已连接服务器");
+                    log("AIUI -- 已连接服务器");
                     break;
 
                 case AIUIConstant.EVENT_SERVER_DISCONNECTED:
-                    LogUtil.iTag(TAG,"AIUI -- 与服务器断开连接");
+                    log("AIUI -- 与服务器断开连接");
                     break;
 
                 case AIUIConstant.EVENT_WAKEUP:
-                    LogUtil.iTag(TAG,"AIUI -- WAKEUP 进入识别状态");
+                    log("AIUI -- WAKEUP 进入识别状态");
                     break;
 
                 case AIUIConstant.EVENT_RESULT:
-//                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- INFO -- " + event.info);
-//                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- DATA -- " + event.data);
+//                    log( "AIUI EVENT_RESULT --- INFO -- " + event.info);
+//                    log( "AIUI EVENT_RESULT --- DATA -- " + event.data);
                     //听写结果(iat)
                     //语义结果(nlp)
                     //后处理服务结果(tpp)
@@ -618,18 +618,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }
 
-                                LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- current -- " + currentIatMessage);
+                                log( "AIUI EVENT_RESULT --- iat -- current -- " + currentIatMessage);
 
                                 if (currentIatMessage!= null && currentIatMessage.length()>0){
                                     mIatMessage = currentIatMessage.toString();
                                 }
 
                                 //发送流式识别结果
-                                mMqttOperater.pulishVoiceRecTopic(ws.toString());
+                                MqttOperater.getInstance().pulishVoiceRecTopic(ws.toString());
 
                                 if (ls && !TextUtils.isEmpty(mIatMessage) && WebsocketOperator.getInstance().isOpen()){
                                     //ls:true后取最后一条不为空的数据发送
-                                    LogUtil.iTag(TAG, "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
+                                    log( "AIUI EVENT_RESULT --- iat -- final -- " + mIatMessage);
                                     WebsocketOperator.getInstance().sendMessage(mIatMessage);
                                     //发送之后置空
                                     mIatMessage = "";
@@ -660,38 +660,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 case AIUIConstant.EVENT_VAD:
 //                    if (AIUIConstant.VAD_BOS == event.arg1) {
-//                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_bos");
+//                        log("AIUI -- VAD 找到vad_bos");
 //                    } else if (AIUIConstant.VAD_BOS_TIMEOUT == event.arg1) {
-//                        LogUtil.iTag(TAG,"AIUI -- VAD 前端点超时");
+//                        log("AIUI -- VAD 前端点超时");
 //                    } else if (AIUIConstant.VAD_EOS == event.arg1) {
-//                        LogUtil.iTag(TAG,"AIUI -- VAD 找到vad_eos");
+//                        log("AIUI -- VAD 找到vad_eos");
 //                    } else {
-//                        LogUtil.iTag(TAG, "AIUI -- VAD " + event.arg2);
+//                        log( "AIUI -- VAD " + event.arg2);
 //                    }
                     break;
                 case AIUIConstant.EVENT_SLEEP:
-                    LogUtil.iTag(TAG, "AIUI -- 设备进入休眠");
+                    log( "AIUI -- 设备进入休眠");
                     break;
 
                 case AIUIConstant.EVENT_START_RECORD:
-                    LogUtil.iTag(TAG, "AIUI -- 已开始录音");
+                    log( "AIUI -- 已开始录音");
                     break;
 
                 case AIUIConstant.EVENT_STOP_RECORD:
-                    LogUtil.iTag(TAG, "AIUI -- 已停止录音");
+                    log( "AIUI -- 已停止录音");
                     break;
 
                 case AIUIConstant.EVENT_STATE:    // 状态事件
                     mAIUIState = event.arg1;
                     if (AIUIConstant.STATE_IDLE == mAIUIState) {
                         // 闲置状态，AIUI未开启
-                        LogUtil.iTag(TAG, "AIUI -- STATE_IDLE");
+                        log( "AIUI -- STATE_IDLE");
                     } else if (AIUIConstant.STATE_READY == mAIUIState) {
                         // AIUI已就绪，等待唤醒
-                        LogUtil.iTag(TAG, "AIUI -- STATE_READY");
+                        log( "AIUI -- STATE_READY");
                     } else if (AIUIConstant.STATE_WORKING == mAIUIState) {
                         // AIUI工作中，可进行交互
-                        LogUtil.iTag(TAG, "AIUI -- STATE_WORKING");
+                        log( "AIUI -- STATE_WORKING");
                     }
                     break;
 
@@ -730,7 +730,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             final int a = angle;
             final int b = beam;
-            LogUtil.iTag(TAG,"CAE -- wakeup success ,angle:" + a + " beam:" + b +"，唤醒次数"+i);
+            log("CAE -- wakeup success ,angle:" + a + " beam:" + b +"，唤醒次数"+i);
             i++;
             setText("唤醒成功,angle:" + a + " beam:" + b );
             setText("---------WAKEUP_CAE---------");
@@ -741,10 +741,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // TODO: 2023/2/1 唤醒后默认切换到音源位置的beam, 此时如果环形麦跟随机器转动,需要手动调用方法设置beam 目前设置为5(M1)
             CAE.CAESetRealBeam(0);
 
-
-            if (mMqttOperater != null){
-                mMqttOperater.pulishWakeup(angle);
-            }
+            MqttOperater.getInstance().pulishWakeup(angle);
+            
 
         }
     };
@@ -774,7 +772,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private RecordListener onRecordListener = new RecordListener() {
         @Override
         public void onPcmData(byte[] bytes) {
-//            LogUtil.iTag(TAG,"ALSA录音消息回调");
+//            log("ALSA录音消息回调");
             // 保存原始录音数据
             mCaeOperator.saveAduio(bytes,CaeOperator.mAlsaRawFileUtil);
 
@@ -887,24 +885,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         LogUtil.iTag(TAG,"onDestroy()");
         mHttpServer.stop();
-        mMqttOperater.unbindService(this);
+        MqttOperater.getInstance().unbindService(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        LogUtil.iTag(TAG,"onPause()");
+        log("onPause()");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        LogUtil.iTag(TAG,"onStop()");
+        log("onStop()");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        LogUtil.iTag(TAG,"onResume()");
+        log("onResume()");
+    }
+    
+    private void log(String logMsg){
+        //log
+        LogUtil.iTag(TAG,logMsg);
+        //mqtt log
+        MqttOperater.getInstance().pulishLog(logMsg);
     }
 }

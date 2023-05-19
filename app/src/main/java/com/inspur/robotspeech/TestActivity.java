@@ -18,7 +18,6 @@ public class TestActivity extends AppCompatActivity {
 
     private HttpServer mHttpServer;
     private MqttServiceConnction mMqttServiceConnction;
-    private MqttOperater mMqttOperater;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,13 +38,12 @@ public class TestActivity extends AppCompatActivity {
                 }
             }
         });
-        mMqttOperater = new MqttOperater();
-        mMqttOperater.bindService(this);
+        MqttOperater.getInstance().bindService(this);
 
         findViewById(R.id.send_msg_topic).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mMqttOperater.pulishWakeup(60);
+                MqttOperater.getInstance().pulishWakeup(60);
             }
         });
 
@@ -57,6 +55,6 @@ public class TestActivity extends AppCompatActivity {
 
         mHttpServer.stop();
 
-        mMqttOperater.unbindService(this);
+        MqttOperater.getInstance().unbindService(this);
     }
 }
