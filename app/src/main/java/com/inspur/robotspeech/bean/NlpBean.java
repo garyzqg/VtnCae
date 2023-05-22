@@ -1,5 +1,7 @@
 package com.inspur.robotspeech.bean;
 
+import java.util.List;
+
 /**
  * @author : zhangqinggong
  * date    : 2023/1/13 15:27
@@ -9,9 +11,16 @@ public class NlpBean {
     //{"data":{"question":"你好","answer":"你也好","entities":[],"finish":true,"intent":"qa_general_intent"},"type":"nlp"}
     private String question;
     private String answer;
-    //    private String entities;
+    private List<EntityBean> entities;
     private boolean finish;
     private String intent;
+    public List<EntityBean> getEntities() {
+        return entities;
+    }
+
+    public void setEntities(List<EntityBean> entities) {
+        this.entities = entities;
+    }
 
 
     public String getQuestion() {
@@ -47,12 +56,12 @@ public class NlpBean {
     }
 
 
-
     @Override
     public String toString() {
         return "NlpBean{" +
                 "question='" + question + '\'' +
                 ", answer='" + answer + '\'' +
+                ", entities=" + entities +
                 ", finish=" + finish +
                 ", intent='" + intent + '\'' +
                 '}';
