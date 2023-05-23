@@ -9,8 +9,8 @@ public class NetConstants {
     public static final boolean lOG_SWITCH = true;
 
 
-    public static final String USER_ACCOUNT = "lixingyu";
-    public static final String USER_PWD = "Aa111111";
+    public static final String USER_ACCOUNT = "demo_user";
+    public static final String USER_PWD = "123456wp";
 
     //http 登录
     public static final String BASE_URL_TEST = "http://10.180.151.125:18088";
