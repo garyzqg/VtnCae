@@ -34,7 +34,7 @@ public class MqttService extends Service implements MqttCallback {
     private static MqttAndroidClient androidClient;
 
     private static String CLIENTID = "";
-    private static final int QOS = 0;	//传输质量
+    private static final int QOS = 2;	//传输质量
     private MqttConnectOptions connectOptions;
 
     public static final String WAKEUP_TOPIC = "/bot/service/voice/awakeup/start";//语音唤醒
@@ -125,7 +125,9 @@ public class MqttService extends Service implements MqttCallback {
         LogUtil.iTag(TAG,"MQTT sendMessage "+ message);
         if (androidClient != null && androidClient.isConnected()) {
             try {
-                androidClient.publish(topic, message.getBytes(), QOS, true);
+                //最后一个值 retained 标志定义消息是否由代理保存为指定主题的最后一个已知良好值。当新客户端订阅某个主题时，他们会收到保留在该主题上的最后一条消息。
+                //设置为true可能会造成bug 消费端重新建联后收到上次连接的最后一条消息
+                androidClient.publish(topic, message.getBytes(), QOS, false);
                 return true;
             } catch (MqttException e) {
                 e.printStackTrace();
